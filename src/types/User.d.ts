@@ -5,6 +5,7 @@ export type User = {
    email: string,
    id: string,
    permissionList: Permission[] | null,
+   roleList: Role[] | null
 }
 export type Permission = {
    id: number,
@@ -16,4 +17,9 @@ export type Permission = {
 export type UserListVo = {
    rid: number | null,
    username: string | null,
+}
+export type Role = {
+   id: number,
+   desc: string,
+   name: string
 }

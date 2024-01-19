@@ -1,3 +1,4 @@
+import type { MyBatisPlusPage } from "@/types/Other";
 import type { Permission, User, UserListVo } from "@/types/User";
 import { request } from "@/utils/request";
 
@@ -13,6 +14,7 @@ export class UserAPI {
    };
    /** 获取用户列表 API */
    static getUserList(num: number, size: number, userLsitVo: UserListVo) {
-      return request<User[]>(`/user-service/user/list/${num}/${size}`, "POST", userLsitVo)
+      return request<MyBatisPlusPage<User[]>>(`/user-service/user/list/${num}/${size}`, "POST", userLsitVo)
    };
+
 }

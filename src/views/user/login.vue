@@ -15,9 +15,10 @@
    </a-form>
 </template>
 <script lang="ts" setup>
+import { UserAPI } from '@/apis/user';
 import router from '@/router';
 import { useUserStore } from '@/stores/user';
-import { message, notification } from 'ant-design-vue';
+import { notification } from 'ant-design-vue';
 import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
 
@@ -37,12 +38,17 @@ const formState = reactive<FormState>({
 
 // 校验通过
 async function onFinish(values: any) {
-   // console.log('Success:', values);
-   await userStore.login(values.username, values.password);
-   notification.success({
-      message: '登录成功',
-      description: `欢迎回来，${userInfo.value.result.username}！`,
-   });
+   let userLoginResult = await UserAPI.login(formState.username, formState.password);
+   if (userLoginResult.code == 20000) {
+      // 存储用户信息
+      userStore.userInfo = userLoginResult.data;
+      // 存储token
+      userStore.token = userLoginResult.other.token;
+      notification.success({
+         message: userLoginResult.message,
+         description: `欢迎回来，${userInfo.value.username}！`,
+      });
+   }
    router.push('/');
 };
 // 校验失败
