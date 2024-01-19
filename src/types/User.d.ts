@@ -15,8 +15,8 @@ export type Permission = {
    children: Permission[] | null
 }
 export type UserListVo = {
-   rid: number | null,
-   username: string | null,
+   rid: number | undefined,
+   username: string,
 }
 export type Role = {
    id: number,

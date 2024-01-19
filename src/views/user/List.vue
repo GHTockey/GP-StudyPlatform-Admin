@@ -1,5 +1,6 @@
 <template>
    <div class="list-container">
+      <!-- 用户列表表格 -->
       <a-table :dataSource="userList" :columns="columns" bordered :pagination="false">
          <template #bodyCell="{ column, record }">
             <!-- 头像列 -->
@@ -26,13 +27,38 @@
                :show-total="(total) => `共 ${total} 条`" @change="pageChange">
                <template #buildOptionText="props">
                   <span>{{ props.value }} 条/页</span>
-                  <!-- <span>全部</span> -->
                </template>
             </a-pagination>
          </template>
          <!-- title -->
          <template #title>
-            111
+            <!-- 用户筛选条件 -->
+            <a-form layout="inline" :model="userListVo">
+               <a-form-item label="角色" style="width: 150px;">
+                  <a-select placeholder="请选择" v-model:value="userListVo.rid">
+                     <a-select-option v-for="role in roleList" :key="role.id" :value="role.id">{{ role.name
+                     }}</a-select-option>
+                  </a-select>
+               </a-form-item>
+
+               <a-form-item label="用户名">
+                  <a-input v-model:value="userListVo.username" placeholder="请输入">
+                  </a-input>
+               </a-form-item>
+
+               <a-form-item>
+                  <a-button type="default" @click="resetForm">
+                     重置
+                  </a-button>
+               </a-form-item>
+               <a-form-item>
+                  <a-button type="primary" html-type="submit"
+                     @click="getUserList(pageVo.current, pageVo.pageSize, userListVo)">
+                     查询
+                  </a-button>
+               </a-form-item>
+
+            </a-form>
          </template>
 
       </a-table>
@@ -41,10 +67,12 @@
 
 <script setup lang="ts">
 import { UserAPI } from '@/apis/user';
-import type { User, UserListVo } from '@/types/User';
+import type { Role, User, UserListVo } from '@/types/User';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import { ref, computed } from 'vue';
 
+// 角色列表
+const roleList = ref<Role[]>();
 // 用户列表
 const userList = ref<User[]>();
 // 分页条件
@@ -55,9 +83,10 @@ const pageVo = ref({
 });
 // 用户筛选条件
 const userListVo = ref<UserListVo>({
-   rid: null,
-   username: null
+   rid: undefined,
+   username: ''
 });
+
 // 表格列
 const columns = ref<ColumnsType>([
    { title: '编号', dataIndex: 'id', key: 'id' },
@@ -70,8 +99,24 @@ const columns = ref<ColumnsType>([
 
 
 getUserList(pageVo.value.current, pageVo.value.pageSize, userListVo.value);
+getRoleList();
 
-
+// 重置条件表单
+function resetForm() {
+   userListVo.value = {
+      rid: undefined,
+      username: ''
+   };
+}
+// 获取去角色列表
+async function getRoleList() {
+   let { code, data, message } = await UserAPI.getRoleList();
+   if (code == 20000) {
+      roleList.value = data;
+   } else {
+      console.log(message);
+   }
+};
 // 获取用户列表
 async function getUserList(num: number, size: number, userListVo: UserListVo) {
    let { code, data, message } = await UserAPI.getUserList(num, size, userListVo);
@@ -87,7 +132,7 @@ function pageChange(page: number, pageSize: number) {
    console.log(page, pageSize);
    getUserList(page, pageSize, userListVo.value);
 }
-
+// 角色颜色
 const roleColor = computed(() => (type: number) => {
    switch (type) {
       case 1:
