@@ -1,14 +1,14 @@
 export type User = {
+   id?: string,
    username: string
    password: string | null,
    avatar: string,
    email: string,
-   id: string,
    permissionList: Permission[] | null,
    roleList: Role[] | null
 }
 export type Permission = {
-   id: number,
+   id?: number,
    name: string,
    parentId: number,
    path: string,
@@ -19,7 +19,7 @@ export type UserListVo = {
    username: string,
 }
 export type Role = {
-   id: number,
+   id?: number,
    desc: string,
    name: string
 }

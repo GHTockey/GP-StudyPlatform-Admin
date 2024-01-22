@@ -14,4 +14,16 @@ export class PermApi {
    static async addPerm(data: Permission) {
       return request<null>("user-service/permission", "POST", data)
    };
+   /** 获取所有祖先权限ID API */
+   static async getAncestorIds(id: number) {
+      return request<number[]>(`user-service/permission/parents/${id}`)
+   };
+   /** 编辑权限 API */
+   static async editPerm(data: Permission) {
+      return request<null>("user-service/permission", "PUT", data)
+   };
+   /** 删除权限 API */
+   static async deletePerm(id: number) {
+      return request<null>(`user-service/permission/${id}`, "DELETE")
+   };
 }
