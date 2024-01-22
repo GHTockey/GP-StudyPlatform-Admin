@@ -3,12 +3,14 @@
 //    parentEl: { id: number, parent_id: number, children: null },
 //    list: { id: number, parent_id: number, children: null }[]) {
 
+import { computed } from "vue";
+
 // }
 
 
-export function buildTree(data, baseId) {
-   const tree = [];
-   data.forEach(item => {
+export function buildTree(data: any[], baseId: number) {
+   const tree: any[] = [];
+   data.forEach((item: { parentId: any; id: any; children: any[]; }) => {
       if (item.parentId === baseId) {
          const children = buildTree(data, item.id);
          if (children.length > 0) {
@@ -19,3 +21,18 @@ export function buildTree(data, baseId) {
    });
    return tree;
 }
+
+
+// 角色颜色
+export const roleColor = computed(() => (type: number) => {
+   switch (type) {
+      case 1:
+         return 'red';
+      case 2:
+         return 'blue';
+      case 3:
+         return 'green';
+      default:
+         return 'gray';
+   }
+});

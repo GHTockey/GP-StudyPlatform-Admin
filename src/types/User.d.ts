@@ -21,5 +21,6 @@ export type UserListVo = {
 export type Role = {
    id?: number,
    desc: string,
-   name: string
+   name: string,
+   userIds?: string[] | null,
 }

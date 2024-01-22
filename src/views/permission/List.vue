@@ -98,6 +98,7 @@ function handleDelPerm(perm: Permission) {
             resolve(true);
          } else {
             message.error(res.message);
+            resolve(false);
          }
       });
 
