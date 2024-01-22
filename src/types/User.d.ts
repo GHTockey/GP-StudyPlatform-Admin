@@ -12,10 +12,10 @@ export type Permission = {
    name: string,
    parentId: number,
    path: string,
-   children: Permission[] | null
+   children?: Permission[] | null
 }
 export type UserListVo = {
-   rid: number | undefined,
+   rid?: number,
    username: string,
 }
 export type Role = {
