@@ -73,10 +73,27 @@ getRoleList();
 // 编辑角色【打开弹框】
 function handleEditRole(role: Role) {
    roleModelShow.value = true;
+   isEditRole.value = true;
+   // console.log(role);
+   currentActiveRole.value = role;
 }
 // 编辑角色【提交请求】
 async function roleModelHandleOk() {
-
+   console.log(currentActiveRole.value);
+   console.log(isEditRole.value, 'isEditRole');
+   let result;
+   if (isEditRole.value) {
+      result = await RoleApi.editRole(currentActiveRole.value);
+   } else {
+      result = await RoleApi.addRole(currentActiveRole.value);
+   }
+   if (result.code == 20000) {
+      message.success(result.message);
+      getRoleList();
+      roleModelShow.value = false;
+   } else {
+      message.error(result.message);
+   }
 }
 // 删除角色【提交请求】
 async function handleDelRole(role: Role) {
