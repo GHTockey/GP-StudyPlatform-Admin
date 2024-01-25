@@ -69,7 +69,9 @@
 import { UserAPI } from '@/apis/user';
 import type { Role, User, UserListVo } from '@/types/User';
 import type { ColumnsType } from 'ant-design-vue/es/table';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
+import { roleColor } from "@/utils/myTool";
+import { RoleApi } from '@/apis/role';
 
 // 角色列表
 const roleList = ref<Role[]>();
@@ -110,7 +112,7 @@ function resetForm() {
 }
 // 获取去角色列表
 async function getRoleList() {
-   let { code, data, message } = await UserAPI.getRoleList();
+   let { code, data, message } = await RoleApi.getRoleList();
    if (code == 20000) {
       roleList.value = data;
    } else {
@@ -132,19 +134,6 @@ function pageChange(page: number, pageSize: number) {
    console.log(page, pageSize);
    getUserList(page, pageSize, userListVo.value);
 }
-// 角色颜色
-const roleColor = computed(() => (type: number) => {
-   switch (type) {
-      case 1:
-         return 'red';
-      case 2:
-         return 'blue';
-      case 3:
-         return 'green';
-      default:
-         return 'gray';
-   }
-});
 </script>
 
 <style lang="less"></style>

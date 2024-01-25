@@ -16,8 +16,4 @@ export class UserAPI {
    static getUserList(num: number, size: number, userLsitVo: UserListVo) {
       return request<MyBatisPlusPage<User[]>>(`/user-service/user/list/${num}/${size}`, "POST", userLsitVo)
    };
-   /** 获取角色列表 API */
-   static getRoleList() {
-      return request<Role[]>(`user-service/role/list`, "GET")
-   }
 }
