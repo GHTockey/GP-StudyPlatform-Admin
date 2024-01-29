@@ -33,6 +33,6 @@ export const roleColor = computed(() => (type: number) => {
       case 3:
          return 'green';
       default:
-         return 'gray';
+         return 'default';
    }
 });

@@ -2,33 +2,42 @@
    <div class="list-container">
       <!-- 用户列表表格 -->
       <a-table :dataSource="userList" :columns="columns" bordered :pagination="false">
-         <template #bodyCell="{ column, record }">
+         <template #bodyCell="cell">
             <!-- 头像列 -->
-            <template v-if="column.key == 'avatar'">
-               {{ record.avatar || 'default' }}
+            <template v-if="cell?.column.key == 'avatar'">
+               {{ cell?.record.avatar || 'default' }}
             </template>
             <!-- 角色列 -->
-            <template v-if="column.key == 'roleList'">
-               <a-tooltip v-for="role in record.roleList" :title="role.desc" :color="roleColor(role.id)">
+            <template v-if="cell?.column.key == 'roleList'">
+               <a-tooltip v-for="role in cell?.record.roleList" :title="role.desc" :color="roleColor(role.id)">
                   <a-tag :color="roleColor(role.id)">{{ role.name }}</a-tag>
                </a-tooltip>
             </template>
             <!-- 操作列 -->
-            <template v-if="column.key == 'control'">
-               <a-button type="default" size="small">编辑</a-button>
+            <template v-if="cell?.column.key == 'control'">
+               <a-space>
+                  <a-button type="default" size="small">编辑</a-button>
+                  <a-popconfirm title="删除后不可恢复,请确定!" @confirm="handleDelUser(<User>cell?.record)" ok-text="确定"
+                     cancel-text="取消">
+                     <a-button type='primary' danger size="small">删除</a-button>
+                  </a-popconfirm>
+               </a-space>
             </template>
          </template>
 
          <!-- 页脚 -->
          <template #footer>
-            <!-- 自定义分页 -->
-            <a-pagination responsive v-model:current="pageVo.current" v-model:page-size="pageVo.pageSize"
-               :total="pageVo.total" show-size-changer :pageSizeOptions="['5', '10', '20']"
-               :show-total="(total) => `共 ${total} 条`" @change="pageChange">
-               <template #buildOptionText="props">
-                  <span>{{ props.value }} 条/页</span>
-               </template>
-            </a-pagination>
+            <a-flex justify="space-between">
+               <a-button>添加用户</a-button>
+               <!-- 自定义分页 -->
+               <a-pagination responsive v-model:current="pageVo.current" v-model:page-size="pageVo.pageSize"
+                  :total="pageVo.total" show-size-changer :pageSizeOptions="['5', '10', '20']"
+                  :show-total="(total) => `共 ${total} 条`" @change="pageChange">
+                  <template #buildOptionText="props">
+                     <span>{{ props.value }} 条/页</span>
+                  </template>
+               </a-pagination>
+            </a-flex>
          </template>
          <!-- title -->
          <template #title>
@@ -62,6 +71,18 @@
          </template>
 
       </a-table>
+      <!-- 添加/编辑用户弹框 -->
+      <a-modal v-model:open="addEditModalShow" :title="(isEditUser ? '编辑' : '添加') + '用户'" @ok="handleOk">
+         <template #footer>
+            <a-button key="back">取消</a-button>
+            <a-button key="submit" type="primary" @click="handleOk">提交</a-button>
+         </template>
+         <p>Some contents...</p>
+         <p>Some contents...</p>
+         <p>Some contents...</p>
+         <p>Some contents...</p>
+         <p>Some contents...</p>
+      </a-modal>
    </div>
 </template>
 
@@ -72,6 +93,7 @@ import type { ColumnsType } from 'ant-design-vue/es/table';
 import { ref } from 'vue';
 import { roleColor } from "@/utils/myTool";
 import { RoleApi } from '@/apis/role';
+import { message } from 'ant-design-vue';
 
 // 角色列表
 const roleList = ref<Role[]>();
@@ -88,21 +110,46 @@ const userListVo = ref<UserListVo>({
    rid: undefined,
    username: ''
 });
+// 添加/编辑用户弹框显示
+const addEditModalShow = ref(true);
+// 是否编辑用户
+const isEditUser = ref(false);
 
 // 表格列
-const columns = ref<ColumnsType>([
-   { title: '编号', dataIndex: 'id', key: 'id' },
+const columns: ColumnsType = [
+   { title: 'ID', dataIndex: 'id', key: 'id' },
    { title: '头像', key: 'avatar' },
-   { title: '用户名', dataIndex: 'username', key: 'username' },
+   { title: '用户名', dataIndex: 'username', key: 'username', width: '80px' },
    { title: '邮箱', dataIndex: 'email', key: 'email' },
    { title: '角色', dataIndex: 'roleList', key: 'roleList' },
-   { title: '操作', key: 'control' },
-]);
+   { title: '操作', key: 'control', align: 'center' },
+];
 
 
 getUserList(pageVo.value.current, pageVo.value.pageSize, userListVo.value);
 getRoleList();
 
+
+// 添加/编辑用户 【提交】
+async function handleOk() {
+   // let result = await UserAPI.addUser();
+   // if (result.code == 20000) {
+   //    message.success(result.message);
+   //    getUserList(pageVo.value.current, pageVo.value.pageSize, userListVo.value);
+   // } else {
+   //    message.error(result.message);
+   // }
+};
+// 删除用户 【提交】
+async function handleDelUser(user: User) {
+   let result = await UserAPI.deleteUser(user.id as string);
+   if (result.code == 20000) {
+      message.success(result.message);
+      getUserList(pageVo.value.current, pageVo.value.pageSize, userListVo.value);
+   } else {
+      message.error(result.message);
+   }
+};
 // 重置条件表单
 function resetForm() {
    userListVo.value = {

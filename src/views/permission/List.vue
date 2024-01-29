@@ -3,7 +3,7 @@
       <a-table :columns="columns" :data-source="permList" rowKey="id" v-if="permList?.length > 0" bordered
          :pagination="false" :rowClassName="(record => record.parentId == 0 ? 'table-style' : '')" default-expand-all-rows>
          <!-- 页头 -->
-         <template #title>
+         <template #footer>
             <a-button @click="handleAddPerm()">添加权限</a-button>
          </template>
          <template #bodyCell="text">

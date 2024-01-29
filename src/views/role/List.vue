@@ -1,7 +1,7 @@
 <template>
    <div class="role-container">
       <!-- 角色表格 -->
-      <a-table :columns="columns" :data-source="roleList" rowKey="id">
+      <a-table :columns="columns" :data-source="roleList" rowKey="id" :pagination="false">
          <template #bodyCell="text">
             <!-- 描述 -->
             <template v-if="text?.column.key == 'desc'">
@@ -23,6 +23,10 @@
                </a-space>
             </template>
          </template>
+         <!-- 表格页脚 -->
+         <template #footer>
+            <a-button @click="handleAddRoleOpen">添加角色</a-button>
+         </template>
       </a-table>
       <!-- 添加/编辑弹框 -->
       <a-modal v-model:open="roleModelShow" :title="(isEditRole ? '编辑' : '添加') + '角色'" @ok="roleModelHandleOk"
@@ -39,39 +43,41 @@
       </a-modal>
       <!-- 角色权限编辑抽屉 -->
       <a-drawer v-model:open="rolePermDrawerShow" class="custom-class" root-class-name="root-class-name"
-         :root-style="{ color: 'blue' }" style="color: red" placement="left">
-         <template #title>设置角色 <span style="color: rgb(0, 183, 255)">{{ currentActiveRole.name }}</span> 的权限</template>
+         :root-style="{ color: 'blue' }" style="color: red" placement="left" @close="resetRolePermTreeAndForm">
+         <template #title>设置角色 <span style="font-weight: 700;">{{ currentActiveRole.name }}</span> 的权限</template>
          <template #extra>
             <a-button type="primary" @click="handleSetRolePermSubmit">提交</a-button>
          </template>
-         <a-spin :spinning="permList.length <= 0">
-            <a-tree checkStrictly checkable defaultExpandAll v-if="permList.length" v-model:checkedKeys="checkedKeys"
-               :treeData="permList" :fieldNames="{ title: 'name', key: 'id' }">
+         <a-spin :spinning="!permList?.length">
+            <a-tree v-if="permList?.length" checkable defaultExpandAll v-model:checked-keys="checkedKeys"
+               :treeData="permList" :fieldNames="{ title: 'name', key: 'id' }" @check="treeCheck">
             </a-tree>
          </a-spin>
-         <!-- {{ checkedKeys }} -->
+         <!-- {{ 'sele:' + checkedKeys }}
+         {{ 'half:' + halfChecked }} -->
       </a-drawer>
    </div>
 </template>
-
 <script setup lang="ts">
 import { RoleApi } from "@/apis/role";
 import type { Permission, Role } from "@/types/User";
 import { ref } from "vue";
 import { buildTree, roleColor } from "@/utils/myTool";
-import { message } from "ant-design-vue";
+import { message, type TreeProps } from "ant-design-vue";
 import { PermApi } from "@/apis/perm";
 import lodash from "lodash";
+import type { ColumnsType } from "ant-design-vue/es/table";
+import type { CheckInfo } from "ant-design-vue/es/vc-tree/props";
 
 // 角色列表
 const roleList = ref<Role[]>([]);
 // 表格对应数据
-const columns = [
+const columns: ColumnsType = [
    { title: 'ID', key: 'id', dataIndex: 'id' },
    { title: '名称', key: 'name', dataIndex: 'name' },
    { title: '描述', key: 'desc', dataIndex: 'desc' },
-   { title: '用户数量', key: 'userIds', dataIndex: 'userIds' },
-   { title: '操作', key: 'control' },
+   { title: '用户关联', key: 'userIds', dataIndex: 'userIds' },
+   { title: '操作', key: 'control', align: 'center' },
 ];
 // 添加/编辑角色弹框显示
 const roleModelShow = ref(false);
@@ -89,26 +95,53 @@ const rolePermDrawerShow = ref(false);
 // 当前角色权限树
 const currentRolePerm = ref<Permission[]>([]);
 // 权限列表
-const permList = ref<Permission[]>([]);
+// const permList = ref<Permission[]>([]);
+const permList = ref<TreeProps['treeData']>([]);
 // 权限树选中的key
-const checkedKeys = ref<{ checked: number[], halfChecked: any[] }>({
-   checked: [], // 选中的key
-   halfChecked: [], // 半选中的key (用不上好像)
-});
-
+const checkedKeys = ref<TreeProps['checkedKeys']>();
+// 权限树半选中的key
+const halfChecked = ref<TreeProps['checkedKeys']>();
 
 
 getRoleList();
 getPermList();
+// todo AddAddadd role
+// todo 编辑权限 loading
+// todo 弹框关闭重置数据
 
 
 
+// 权限树选中事件
+const treeCheck = (fnCheckedKeys: TreeProps['checkedKeys'], info: CheckInfo) => {
+   // console.log(fnCheckedKeys, info, "treeCheck");
+   checkedKeys.value = fnCheckedKeys;
+   halfChecked.value = info.halfCheckedKeys;
+};
+function ttt(x: number) { };
+// 重置角色权限树和添加/编辑角色表单
+function resetRolePermTreeAndForm() {
+   currentRolePerm.value = [];
+   checkedKeys.value = []
+   currentActiveRole.value = {
+      name: '',
+      desc: '',
+      userIds: [],
+   };
+}
+// 添加角色 【打开弹框】
+function handleAddRoleOpen() {
+   roleModelShow.value = true;
+   isEditRole.value = false;
+}
 // 角色权限设置 【提交请求】
 async function handleSetRolePermSubmit() {
    console.log(checkedKeys.value, "权限树选中的key");
    console.log(currentActiveRole.value, "当前选中的角色");
    if (!currentActiveRole.value.id) return message.error('【系统错误】：roleID不能为空');
-   let result = await RoleApi.setRolePerm(currentActiveRole.value.id, checkedKeys.value.checked);
+   let result = await RoleApi.setRolePerm(
+      currentActiveRole.value.id,
+      { selectedIds: checkedKeys.value as number[], halfCheckIds: halfChecked.value as number[] || [] }
+   );
    if (result.code == 20000) {
       message.success(result.message);
       rolePermDrawerShow.value = false;
@@ -123,7 +156,7 @@ async function handleSetRolePerm(role: Role) {
    rolePermDrawerShow.value = true;
    // console.log(role);
    await getRolePermList(<number>role.id);
-   checkedKeys.value.checked = currentRolePerm.value.map((item) => item.id as number);
+   checkedKeys.value = currentRolePerm.value.filter(item => item.halfCheck != 1).map(perm => perm.id as number)
 }
 // 获取角色权限列表
 async function getRolePermList(rid: number) {

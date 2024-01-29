@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import type { Permission } from "@/types/User";
-import { defineProps, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 withDefaults(defineProps<{

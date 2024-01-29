@@ -12,7 +12,8 @@ export type Permission = {
    name: string,
    parentId: number,
    path: string,
-   children?: Permission[] | null
+   children?: Permission[] | null,
+   halfCheck: number
 }
 export type UserListVo = {
    rid?: number,
@@ -23,4 +24,8 @@ export type Role = {
    desc: string,
    name: string,
    userIds?: string[] | null,
+}
+export type SetRolePermVo = {
+   halfCheckIds: number[],
+   selectedIds: number[]
 }

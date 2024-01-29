@@ -1,4 +1,4 @@
-import type { Role } from "@/types/User";
+import type { Role, SetRolePermVo } from "@/types/User";
 import { request } from "@/utils/request";
 
 export class RoleApi {
@@ -19,7 +19,7 @@ export class RoleApi {
       return request<null>("user-service/role", "PUT", data)
    };
    /** 设置角色权限 API */
-   static setRolePerm(rid: number, permIds: number[]) {
-      return request<null>(`user-service/role/perm/set/${rid}`, "POST", permIds)
+   static setRolePerm(rid: number, setRolePermVo: SetRolePermVo) {
+      return request<null>(`user-service/role/perm/set/${rid}`, "POST", setRolePermVo)
    };
 }

@@ -16,4 +16,16 @@ export class UserAPI {
    static getUserList(num: number, size: number, userLsitVo: UserListVo) {
       return request<MyBatisPlusPage<User[]>>(`/user-service/user/list/${num}/${size}`, "POST", userLsitVo)
    };
+   /** 添加用户 API */
+   static addUser(data: User) {
+      return request<null>("/user-service/user", "POST", data)
+   };
+   /** 删除用户 API */
+   static deleteUser(id: string) {
+      return request<null>(`/user-service/user/${id}`, "DELETE")
+   };
+   /** 编辑用户 API */
+   static editUser(data: User) {
+      return request<null>("/user-service/user", "PUT", data)
+   };
 }
