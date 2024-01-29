@@ -23,20 +23,20 @@
       <!-- 添加权限弹框 -->
       <a-modal v-model:open="openAddPermModal" :title="(isEditPerm ? '编辑' : '添加') + '权限'" cancel-text="取消" ok-text="确认"
          @ok="handleOk" @cancel="handleCancelClearForm">
-         <a-form :model="addPermForm" autocomplete="off" ref="addPermFormEl">
+         <a-form :model="currentPermForm" autocomplete="off" ref="addPermFormEl">
             <a-form-item label="名称" name="name" :rules="[{ required: true, message: '请输入权限名称' }]">
-               <a-input v-model:value="addPermForm.name" />
+               <a-input v-model:value="currentPermForm.name" />
             </a-form-item>
 
             <a-form-item label="路径" name="path" :rules="[{ required: true, message: '请输入权限路径' }]">
                <div style="display: flex; align-items: center;">
                   <span style="color: grey;margin-right: 5px; cursor:no-drop;" v-show="parentPath">{{ parentPath }}</span>
-                  <a-input v-model:value="addPermForm.path" />
+                  <a-input v-model:value="currentPermForm.path" />
                </div>
             </a-form-item>
 
             <a-form-item label="父级" name="parentId">
-               <a-cascader v-model:value="addPermForm.parentIdArr" @change="(<any>onChange)" change-on-select
+               <a-cascader v-model:value="currentPermForm.parentIdArr" @change="(<any>onChange)" change-on-select
                   :field-names="{ label: 'name', value: 'id', children: 'children' }" :options="(<any>permList)"
                   placeholder="没有选择默认为顶级权限" />
             </a-form-item>
@@ -68,7 +68,7 @@ const columns: ColumnsType = [
 // 添加权限 弹框开关
 const openAddPermModal = ref(false);
 // 添加权限 表单数据
-const addPermForm = ref<Permission & { parentIdArr: number[] }>({
+const currentPermForm = ref<Permission & { parentIdArr: number[] }>({
    path: '',
    name: '',
    parentId: 0,
@@ -81,6 +81,8 @@ const addPermFormEl = ref<FormExpose | null>(null);
 const parentPath = ref<string>('');
 // 是否是编辑权限
 const isEditPerm = ref(false);
+// 当前选中的权限 【响应式】
+const currentPermReactive = ref<Permission>();
 
 
 
@@ -107,7 +109,11 @@ function handleDelPerm(perm: Permission) {
 // 添加权限 关闭弹框 清空表单
 function handleCancelClearForm() {
    console.log('取消清除表单');
-   addPermForm.value = {
+   if (currentPermReactive.value) {
+      currentPermReactive.value.disabled = false; // 关闭弹框时解除禁用
+      currentPermReactive.value = undefined;
+   }
+   currentPermForm.value = {
       path: '',
       name: '',
       parentId: 0,
@@ -115,16 +121,21 @@ function handleCancelClearForm() {
       id: 0,
    };
    parentPath.value = '';
+   addPermFormEl.value?.resetFields();
 };
 // 修改权限 打开弹框
 async function handleEditPerm(perm: Permission) {
+   currentPermReactive.value = perm; // 保存当前选中的权限响应式数据
+   currentPermReactive.value.disabled = true; // 因为数据是响应式，所以这里直接修改会影响到树形数据从而禁用当前节点解决“自己选择自己当儿子”的问题
    isEditPerm.value = true;
    openAddPermModal.value = true;
-   addPermForm.value = { ...perm, parentIdArr: [] };
-   addPermForm.value.parentIdArr = (await PermApi.getAncestorIds(<number>perm.id)).data.filter((id: number) => id != 0);
-   if (addPermForm.value.parentId != 0) {
-      parentPath.value = (await PermApi.getPerm(addPermForm.value.parentId)).data.path;
-      addPermForm.value.path = addPermForm.value.path.replace(parentPath.value, '');
+   currentPermForm.value = { ...perm, parentIdArr: [] };
+   currentPermForm.value.parentIdArr = (await PermApi.getAncestorIds(<number>perm.id)).data.filter((id: number) => id != 0);
+   if (currentPermForm.value.parentId != 0) {
+      // 获取父级 path
+      parentPath.value = (await PermApi.getPerm(currentPermForm.value.parentId)).data.path;
+      // 将父级 path 从当前 path 中去除
+      currentPermForm.value.path = currentPermForm.value.path.replace(parentPath.value, '');
    }
 };
 // 添加权限 联级选择
@@ -133,9 +144,9 @@ async function onChange(ids?: number[]) {
    parentPath.value = '';
    if (!ids) return;
    // 选择的最后一个就是父级id
-   addPermForm.value.parentId = ids[ids.length - 1];
+   currentPermForm.value.parentId = ids[ids.length - 1];
    // 设置父级路径
-   parentPath.value = (await PermApi.getPerm(addPermForm.value.parentId)).data.path
+   parentPath.value = (await PermApi.getPerm(currentPermForm.value.parentId)).data.path
 };
 // 添加权限 打开弹框
 function handleAddPerm(parentId?: number) {
@@ -147,7 +158,7 @@ function handleAddPerm(parentId?: number) {
 function handleOk() {
    addPermFormEl.value?.validateFields().then(async () => {
       console.log('验证通过');
-      let submitData = { ...addPermForm.value };
+      let submitData = { ...currentPermForm.value };
       let result;
       submitData.path = parentPath.value + submitData.path;
       if (isEditPerm.value) {

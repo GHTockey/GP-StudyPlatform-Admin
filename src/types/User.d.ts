@@ -13,7 +13,8 @@ export type Permission = {
    parentId: number,
    path: string,
    children?: Permission[] | null,
-   halfCheck: number
+   halfCheck?: number,
+   disabled?: boolean, // 是否禁用 用于树形控件
 }
 export type UserListVo = {
    rid?: number,

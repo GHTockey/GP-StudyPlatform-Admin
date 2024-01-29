@@ -29,26 +29,26 @@
          </template>
       </a-table>
       <!-- 添加/编辑弹框 -->
-      <a-modal v-model:open="roleModelShow" :title="(isEditRole ? '编辑' : '添加') + '角色'" @ok="roleModelHandleOk"
-         cancelText="取消" okText="提交">
-         <a-form :model="currentActiveRole" autocomplete="off">
-            <a-form-item label="名称" name="name">
-               <a-input v-model:value="currentActiveRole.name" />
+      <a-modal v-model:open="roleModelShow" @ok="roleModelHandleOk" @cancel="resetAddRoleForm" cancelText="取消" okText="提交" :closable="false">
+         <template #title>{{ (isEditRole ? '编辑' : '添加') + '角色' }}</template>
+         <a-form :model="currentRole" autocomplete="off" ref="addRoleFormEl">
+            <a-form-item label="名称" name="name" :rules="{ required: true, message: '请输入角色名称' }">
+               <a-input v-model:value="currentRole.name" />
             </a-form-item>
 
-            <a-form-item label="描述" name="desc">
-               <a-input v-model:value="currentActiveRole.desc" />
+            <a-form-item label="描述" name="desc" :rules="{ required: true, message: '请输入角色描述' }">
+               <a-input v-model:value="currentRole.desc" />
             </a-form-item>
          </a-form>
       </a-modal>
       <!-- 角色权限编辑抽屉 -->
       <a-drawer v-model:open="rolePermDrawerShow" class="custom-class" root-class-name="root-class-name"
-         :root-style="{ color: 'blue' }" style="color: red" placement="left" @close="resetRolePermTreeAndForm">
-         <template #title>设置角色 <span style="font-weight: 700;">{{ currentActiveRole.name }}</span> 的权限</template>
+         :root-style="{ color: 'blue' }" style="color: red" placement="right" @close="resetRolePermTreeAndForm">
+         <template #title>设置角色 <span style="font-weight: 700;">{{ currentRole.name }}</span> 的权限</template>
          <template #extra>
             <a-button type="primary" @click="handleSetRolePermSubmit">提交</a-button>
          </template>
-         <a-spin :spinning="!permList?.length">
+         <a-spin :spinning="getRolePermListLoading">
             <a-tree v-if="permList?.length" checkable defaultExpandAll v-model:checked-keys="checkedKeys"
                :treeData="permList" :fieldNames="{ title: 'name', key: 'id' }" @check="treeCheck">
             </a-tree>
@@ -68,6 +68,7 @@ import { PermApi } from "@/apis/perm";
 import lodash from "lodash";
 import type { ColumnsType } from "ant-design-vue/es/table";
 import type { CheckInfo } from "ant-design-vue/es/vc-tree/props";
+import type { FormExpose } from "ant-design-vue/es/form/Form";
 
 // 角色列表
 const roleList = ref<Role[]>([]);
@@ -84,7 +85,7 @@ const roleModelShow = ref(false);
 // 是否编辑角色
 const isEditRole = ref(false);
 // 表单数据 【当前选中的角色 添加/编辑】
-const currentActiveRole = ref<Role>({
+const currentRole = ref<Role>({
    // id: '',
    name: '',
    desc: '',
@@ -101,28 +102,40 @@ const permList = ref<TreeProps['treeData']>([]);
 const checkedKeys = ref<TreeProps['checkedKeys']>();
 // 权限树半选中的key
 const halfChecked = ref<TreeProps['checkedKeys']>();
+// 添加角色 表单实例
+const addRoleFormEl = ref<FormExpose | null>(null);
+// 获取当前角色权限列表的loading
+const getRolePermListLoading = ref(false);
+
 
 
 getRoleList();
 getPermList();
-// todo AddAddadd role
-// todo 编辑权限 loading
 // todo 弹框关闭重置数据
 
 
 
+// 重置添加/编辑角色表单
+function resetAddRoleForm() {
+   currentRole.value = {
+      name: '',
+      desc: '',
+      userIds: [],
+   };
+   addRoleFormEl.value?.resetFields();
+}
 // 权限树选中事件
 const treeCheck = (fnCheckedKeys: TreeProps['checkedKeys'], info: CheckInfo) => {
    // console.log(fnCheckedKeys, info, "treeCheck");
    checkedKeys.value = fnCheckedKeys;
    halfChecked.value = info.halfCheckedKeys;
 };
-function ttt(x: number) { };
 // 重置角色权限树和添加/编辑角色表单
 function resetRolePermTreeAndForm() {
+   getRolePermListLoading.value = false;
    currentRolePerm.value = [];
    checkedKeys.value = []
-   currentActiveRole.value = {
+   currentRole.value = {
       name: '',
       desc: '',
       userIds: [],
@@ -136,10 +149,10 @@ function handleAddRoleOpen() {
 // 角色权限设置 【提交请求】
 async function handleSetRolePermSubmit() {
    console.log(checkedKeys.value, "权限树选中的key");
-   console.log(currentActiveRole.value, "当前选中的角色");
-   if (!currentActiveRole.value.id) return message.error('【系统错误】：roleID不能为空');
+   console.log(currentRole.value, "当前选中的角色");
+   if (!currentRole.value.id) return message.error('【系统错误】：roleID不能为空');
    let result = await RoleApi.setRolePerm(
-      currentActiveRole.value.id,
+      currentRole.value.id,
       { selectedIds: checkedKeys.value as number[], halfCheckIds: halfChecked.value as number[] || [] }
    );
    if (result.code == 20000) {
@@ -152,17 +165,19 @@ async function handleSetRolePermSubmit() {
 }
 // 设置角色权限 【打开抽屉】
 async function handleSetRolePerm(role: Role) {
-   currentActiveRole.value = lodash.cloneDeep(role);
+   currentRole.value = lodash.cloneDeep(role);
    rolePermDrawerShow.value = true;
    // console.log(role);
    await getRolePermList(<number>role.id);
    checkedKeys.value = currentRolePerm.value.filter(item => item.halfCheck != 1).map(perm => perm.id as number)
 }
-// 获取角色权限列表
+// 获取当前角色权限列表
 async function getRolePermList(rid: number) {
+   getRolePermListLoading.value = true;
    let { code, data } = await PermApi.getPermListByRid(rid);
    if (code == 20000) {
       currentRolePerm.value = data
+      getRolePermListLoading.value = false;
    }
 }
 // 获取权限列表
@@ -177,25 +192,30 @@ function handleEditRole(role: Role) {
    roleModelShow.value = true;
    isEditRole.value = true;
    // console.log(role);
-   currentActiveRole.value = lodash.cloneDeep(role);
+   currentRole.value = lodash.cloneDeep(role);
 }
 // 添加/编辑角色【提交请求】
-async function roleModelHandleOk() {
+function roleModelHandleOk() {
    // console.log(currentActiveRole.value);
    // console.log(isEditRole.value, 'isEditRole');
-   let result;
-   if (isEditRole.value) {
-      result = await RoleApi.editRole(currentActiveRole.value);
-   } else {
-      result = await RoleApi.addRole(currentActiveRole.value);
-   }
-   if (result.code == 20000) {
-      message.success(result.message);
-      getRoleList();
-      roleModelShow.value = false;
-   } else {
-      message.error(result.message);
-   }
+   addRoleFormEl.value?.validateFields().then(async () => {
+      console.log('验证通过');
+      let result;
+      if (isEditRole.value) {
+         result = await RoleApi.editRole(currentRole.value);
+      } else {
+         result = await RoleApi.addRole(currentRole.value);
+      }
+      if (result.code == 20000) {
+         message.success(result.message);
+         getRoleList();
+         roleModelShow.value = false;
+      } else {
+         message.error(result.message);
+      }
+
+   }).catch();
+
 }
 // 删除角色【提交请求】
 async function handleDelRole(role: Role) {
