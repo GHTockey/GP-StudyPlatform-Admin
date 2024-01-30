@@ -49,9 +49,9 @@
 <script setup lang="ts">
 import { PermApi } from '@/apis/perm';
 import type { Permission } from '@/types/User';
-import { message } from 'ant-design-vue';
+import { Modal, message } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
-import { ref } from 'vue';
+import { h, ref } from 'vue';
 import { buildTree } from "@/utils/myTool";
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
 
@@ -90,19 +90,50 @@ getPermList();
 
 
 
-// 删除权限
+// 删除权限 
 function handleDelPerm(perm: Permission) {
-   return new Promise((resolve) => {
-      PermApi.deletePerm(perm.id as number).then((res) => {
-         if (res.code == 20000) {
-            message.success(res.message);
-            getPermList();
-            resolve(true);
-         } else {
-            message.error(res.message);
-            resolve(false);
-         }
-      });
+   return new Promise(async (resolve) => {
+      let { data } = await PermApi.getDescendantIds(perm.id as number)
+      if (data.length) {
+         Modal.confirm({
+            title: '提示',
+            // content: `该权限下还有 ${data.length} 项后代权限将一并删除，请确定!`,
+            content: h('span', null, [
+               '该权限下还有 ',
+               h('span', { style: 'color: red; font-weight:700;' }, data.length),
+               ' 项后代权限将一并删除，请确定!'
+            ]),
+            okText: '确定删除',
+            cancelText: '取消',
+            onOk() {
+               PermApi.deletePerm(perm.id as number).then((res) => {
+                  if (res.code == 20000) {
+                     message.success(res.message);
+                     getPermList();
+                     resolve(true);
+                  } else {
+                     message.error(res.message);
+                     resolve(false);
+                  }
+               });
+            },
+            onCancel() {
+               resolve(false);
+            }
+         });
+      } else {
+         PermApi.deletePerm(perm.id as number).then((res) => {
+            if (res.code == 20000) {
+               message.success(res.message);
+               getPermList();
+               resolve(true);
+            } else {
+               message.error(res.message);
+               resolve(false);
+            }
+         });
+      }
+
 
    })
 };

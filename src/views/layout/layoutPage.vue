@@ -23,15 +23,20 @@ import TestMenu from "@/components/TestMenu.vue";
 import { UserAPI } from "@/apis/user";
 import type { Permission } from '@/types/User';
 import { buildTree } from "@/utils/myTool";
+import { message } from 'ant-design-vue';
 
 const userStore = useUserStore();
 const { userInfo } = storeToRefs(userStore);
 const permissionList = ref<Permission[]>();
 
-getUserPerms('U000001');
+if (userInfo.value.id) {
+   getUserPerms(userInfo.value.id);
+} else {
+   message.error('用户信息获取失败，请重新登录！');
+}
 
 // 获取用户权限列表
-async function getUserPerms(uid: string) {
+async function getUserPerms(uid: number) {
    let { code, data, message } = await UserAPI.getPermissionListByUid(uid);
    if (code == 20000) {
       // 存储用户权限列表并构建树形结构

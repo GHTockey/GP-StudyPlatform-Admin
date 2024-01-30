@@ -9,7 +9,7 @@ export class UserAPI {
       return request<User>("/user-service/user/login", "POST", { username, password })
    };
    /** 根据 UID 获取用户权限列表 API */
-   static getPermissionListByUid(uid: string) {
+   static getPermissionListByUid(uid: number) {
       return request<Permission[]>(`/user-service/permission/user/${uid}`, "GET")
    };
    /** 获取用户列表 API */

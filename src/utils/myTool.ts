@@ -24,7 +24,7 @@ export function buildTree(data: any[], baseId: number) {
 
 
 // 角色颜色
-export const roleColor = computed(() => (type: number) => {
+export const roleColor = computed(() => (type: number | undefined) => {
    switch (type) {
       case 1:
          return 'red';

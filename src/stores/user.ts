@@ -1,22 +1,16 @@
 import type { Permission, User, UserListVo } from "@/types/User";
 import { defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 
 export const useUserStore = defineStore("user_store", () => {
    // 用户信息
-   const userInfo = reactive<User>({
+   const userInfo = ref<User>({
       username: "",
-      password: null,
       avatar: "",
-      email: "",
-      id: "",
-      permissionList: null
+      email: ""
    });
    // 用户权限
-   const permissionList = reactive<Permission[]>({
-      status: 'idle',
-      result: []
-   });
+   const permissionList = ref<Permission[]>([]);
    // token
    const token = ref<string>();
 

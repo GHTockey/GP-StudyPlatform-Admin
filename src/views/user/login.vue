@@ -41,15 +41,15 @@ async function onFinish(values: any) {
    let userLoginResult = await UserAPI.login(formState.username, formState.password);
    if (userLoginResult.code == 20000) {
       // 存储用户信息
-      userStore.userInfo = userLoginResult.data;
+      userInfo.value = userLoginResult.data;
       // 存储token
       userStore.token = userLoginResult.other.token;
       notification.success({
          message: userLoginResult.message,
          description: `欢迎回来，${userInfo.value.username}！`,
       });
+      router.push('/');
    }
-   router.push('/');
 };
 // 校验失败
 function onFinishFailed(errorInfo: any) {

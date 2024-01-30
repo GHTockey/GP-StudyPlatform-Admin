@@ -18,6 +18,10 @@ export class PermApi {
    static getAncestorIds(id: number) {
       return request<number[]>(`user-service/permission/parents/${id}`)
    };
+   /** 获取所有子级权限ID API */
+   static getDescendantIds(id: number) {
+      return request<number[]>(`user-service/permission/Descendant/${id}`)
+   };
    /** 编辑权限 API */
    static editPerm(data: Permission) {
       return request<null>("user-service/permission", "PUT", data)

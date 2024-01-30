@@ -1,11 +1,12 @@
 export type User = {
-   id?: string,
+   id?: number,
    username: string
-   password: string | null,
+   password?: string,
    avatar: string,
    email: string,
-   permissionList: Permission[] | null,
-   roleList: Role[] | null
+   permissionList?: Permission[] | null,
+   roleList?: Role[] | null,
+   roleIds?: number[]
 }
 export type Permission = {
    id?: number,
