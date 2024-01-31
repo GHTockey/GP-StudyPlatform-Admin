@@ -25,6 +25,11 @@ const router = createRouter({
           path: '/user', name: '用户管理', children: [
             { path: 'list', name: '用户列表', component: () => import('@/views/user/List.vue') }
           ]
+        },
+        {
+          path: '/icon', name:'图标管理', children: [
+            { path: 'list', name: '图标列表', component: () => import('@/views/icon/List.vue') }
+          ]
         }
       ]
     },

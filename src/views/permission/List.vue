@@ -23,7 +23,8 @@
       <!-- 添加权限弹框 -->
       <a-modal v-model:open="openAddPermModal" :title="(isEditPerm ? '编辑' : '添加') + '权限'" cancel-text="取消" ok-text="确认"
          @ok="handleOk" @cancel="handleCancelClearForm">
-         <a-form :model="currentPermForm" autocomplete="off" ref="addPermFormEl">
+         <a-form :model="currentPermForm" autocomplete="off" ref="addPermFormEl" :label-col="{ span: 3 }"
+            :wrapper-col="{ span: 20 }">
             <a-form-item label="名称" name="name" :rules="[{ required: true, message: '请输入权限名称' }]">
                <a-input v-model:value="currentPermForm.name" />
             </a-form-item>
@@ -35,13 +36,25 @@
                </div>
             </a-form-item>
 
+            <a-form-item label="类型" name="type" :rules="[{ required: true, message: '请选择权限类型' }]">
+               <a-radio-group v-model:value="currentPermForm.type" button-style="solid">
+                  <a-radio-button value="page">页面</a-radio-button>
+                  <a-radio-button value="operate">操作</a-radio-button>
+               </a-radio-group>   
+               <span v-if="currentPermForm.type == 'page'">
+                  [页面]影响左侧菜单栏权限
+               </span>
+               <span v-else-if="currentPermForm.type == 'operate'">
+                  [操作]影响按钮级别权限
+               </span>
+            </a-form-item>
+
             <a-form-item label="父级" name="parentId">
                <a-cascader v-model:value="currentPermForm.parentIdArr" @change="(<any>onChange)" change-on-select
                   :field-names="{ label: 'name', value: 'id', children: 'children' }" :options="(<any>permList)"
                   placeholder="没有选择默认为顶级权限" />
             </a-form-item>
          </a-form>
-         {{ isEditPerm }}
       </a-modal>
    </div>
 </template>
@@ -60,9 +73,10 @@ import type { FormExpose } from 'ant-design-vue/es/form/Form';
 const permList = ref<Permission[]>([]);
 // 表格对应数据
 const columns: ColumnsType = [
-   { title: 'ID', key: 'id', dataIndex: 'id' },
+   { title: 'ID', key: 'id', dataIndex: 'id', width: 120 },
    { title: '名称', key: 'name', dataIndex: 'name' },
    { title: '路径', key: 'path', dataIndex: 'path' },
+   { title: '类型', key: 'type', dataIndex: 'type' },
    { title: '操作', key: 'control' },
 ];
 // 添加权限 弹框开关
@@ -74,6 +88,7 @@ const currentPermForm = ref<Permission & { parentIdArr: number[] }>({
    parentId: 0,
    parentIdArr: [],
    id: 0,
+   type: null
 });
 // 添加权限 表单实例
 const addPermFormEl = ref<FormExpose | null>(null);
@@ -150,6 +165,7 @@ function handleCancelClearForm() {
       parentId: 0,
       parentIdArr: [],
       id: 0,
+      type: null
    };
    parentPath.value = '';
    addPermFormEl.value?.resetFields();

@@ -5,7 +5,12 @@
          <template #bodyCell="cell">
             <!-- 头像列 -->
             <template v-if="cell?.column.key == 'avatar'">
-               {{ cell?.record.avatar || 'default' }}
+               <!-- {{ cell?.record.avatar || 'default' }} -->
+               <a-avatar :size="'large'" :src="cell.record.avatar">
+                  <template #icon>
+                     <UserOutlined />
+                  </template>
+               </a-avatar>
             </template>
             <!-- 角色列 -->
             <template v-if="cell?.column.key == 'roleList'">
@@ -28,7 +33,7 @@
          <!-- 页脚 -->
          <template #footer>
             <a-flex justify="space-between">
-               <a-button @click="openAddUserModal">添加用户</a-button>
+               <a-button @click="openAddUserModal" type="dashed">添加用户</a-button>
                <!-- 自定义分页 -->
                <a-pagination responsive v-model:current="pageVo.current" v-model:page-size="pageVo.pageSize"
                   :total="pageVo.total" show-size-changer :pageSizeOptions="['5', '10', '20']"
@@ -73,7 +78,7 @@
       </a-table>
       <!-- 添加/编辑用户弹框 -->
       <a-modal v-model:open="addEditModalShow" :title="(isEditUser ? '编辑' : '添加') + '用户'" @ok="handleOk"
-         @cancel="handleCancel">
+         @cancel="handleCancel" ok-text="确定" cancel-text="取消">
          <a-form ref="userFormEl" :model="currentUserForm" :label-col="{ span: 4 }" :wrapper-col="{ span: 19 }">
             <a-form-item label="头像">
                <a-upload v-model:file-list="fileList" name="avatar" list-type="picture-card" class="avatar-uploader"
@@ -93,7 +98,7 @@
             <a-form-item label="邮箱">
                <a-input v-model:value="currentUserForm.email" />
             </a-form-item>
-            <a-form-item label="角色" name="roleIds" :rules="{ required: true, message: '请选择角色' }">
+            <a-form-item label="角色" name="roleIds" >
                <a-select v-model:value="currentUserForm.roleIds" mode="multiple" placeholder="请选择角色">
                   <a-select-option v-for="role in roleList" :key="role.id" :value="role.id">
                      <div>
@@ -123,7 +128,7 @@ import { roleColor } from "@/utils/myTool";
 import { RoleApi } from '@/apis/role';
 import { message, type UploadChangeParam, type UploadProps } from 'ant-design-vue';
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
-import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons-vue';
 import { OtherAPI } from "@/apis/other";
 import type { UploadRequestOption } from 'ant-design-vue/es/vc-upload/interface';
 
@@ -144,15 +149,15 @@ const userListVo = ref<UserListVo>({
    username: ''
 });
 // 添加/编辑用户弹框显示
-const addEditModalShow = ref(true);
+const addEditModalShow = ref(false);
 // 是否编辑用户
 const isEditUser = ref(false);
 
 // 表格列
 const columns: ColumnsType = [
-   { title: 'ID', dataIndex: 'id', key: 'id' },
-   { title: '头像', key: 'avatar' },
-   { title: '用户名', dataIndex: 'username', key: 'username', width: '80px' },
+   { title: 'ID', dataIndex: 'id', key: 'id', width: 30 },
+   { title: '头像', key: 'avatar', width: '50px' },
+   { title: '用户名', dataIndex: 'username', key: 'username', width: '100px', align: 'center' },
    { title: '邮箱', dataIndex: 'email', key: 'email' },
    { title: '角色', dataIndex: 'roleList', key: 'roleList' },
    { title: '操作', key: 'control', align: 'center' },
@@ -179,6 +184,7 @@ getRoleList();
 
 // 上传头像
 async function uploadAvatar(file: UploadRequestOption) {
+   currentUserForm.value.avatar = '';
    const formData = new FormData();
    formData.append('file', file.file);
    let { code, data, message: msg } = await OtherAPI.fileUpload(formData);
@@ -207,7 +213,7 @@ const handleChange = (info: UploadChangeParam) => {
       message.error('upload error');
    }
 };
-// 自定义上传头像handler
+// 文件校验
 const beforeUpload = (file: UploadProps['fileList'][number]) => {
    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
    if (!isJpgOrPng) {
@@ -246,7 +252,8 @@ function openAddUserModal() {
 };
 // 添加/编辑用户 【提交】
 async function handleOk() {
-   userFormEl.value?.validateFields()
+   await userFormEl.value?.validateFields()
+   // 处理角色列表
    currentUserForm.value.roleList = roleList.value?.filter(role => currentUserForm.value.roleIds?.includes(role.id as number)) as Role[];
    // console.log(currentUserForm.value);
    let result;

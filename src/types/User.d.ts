@@ -16,6 +16,7 @@ export type Permission = {
    children?: Permission[] | null,
    halfCheck?: number,
    disabled?: boolean, // 是否禁用 用于树形控件
+   type: 'page' | 'operate' | null
 }
 export type UserListVo = {
    rid?: number,
