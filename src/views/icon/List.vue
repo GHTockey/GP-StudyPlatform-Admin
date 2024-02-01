@@ -2,14 +2,20 @@
    <div class="icon-list">
       <a-card title="图标列表" style="height: 100%;">
          <template #extra>
-            <a-button type="primary" style="margin-left: 10px;" @click="iconFormOpen(false)">添加图标</a-button>
-            <a-button type="primary" danger style="margin-left: 10px;">批量删除</a-button>
+            <a-button style="margin-left: 10px;" @click="iconFormOpen(false)">添加图标</a-button>
+            <a-badge :count="selectedIconList.length">
+               <a-button type="primary" danger :disabled="!selectedIconList.length"
+                  style="margin-left: 10px;">批量删除</a-button>
+            </a-badge>
          </template>
 
          <div style="display: flex; height: 100%;">
             <!-- 图标列表 -->
-            <a-flex wrap="wrap" gap="small" style="min-width: 100px; flex: 2; overflow-y: auto;" justify="center">
-               <div v-for="(item, index) in iconList" :key="index" class="border-def">
+            <a-flex wrap="wrap" gap="small"
+               style="min-width: 100px; flex: 2; overflow-y: auto; align-content: baseline; padding: 8px;">
+               <div v-for="(item, index) in iconList" :key="index"
+                  :class="`border-def ${selectedIconList.includes(item.id!) ? 'icon-active' : ''}`"
+                  @click="iconClick(item)">
                   <div style="width: 30px; position: absolute; top: 20%; left: 50%; transform: translate(-50%);">
                      <icon>
                         <template #component>
@@ -23,20 +29,38 @@
                   <!-- hover 操作 -->
                   <div class="hover-icon">
                      <EditFilled class="icon-item" title="编辑图标" @click="iconFormOpen(true, item)" />
-                     <DeleteFilled class="icon-item" title="删除图标" @click="deleteIcon(item)" />
+                     <a-popconfirm title="删除后不可恢复,请确定!" @confirm="deleteIcon(item)" ok-text="确定" cancel-text="取消">
+                        <DeleteFilled class="icon-item" title="删除图标" />
+                     </a-popconfirm>
                   </div>
                </div>
             </a-flex>
             <!-- 右边栏 -->
-            <div class="right-bar" style=" width: 300px;">
+            <!-- <div class="right-bar" style=" width: 300px;">
                123
-            </div>
+            </div> -->
+            <a-card class="right-bar" style="width: 300px;">
+               <div class="right-bar-icon">
+                  <icon style="width: 100px;">
+                     <template #component>
+                        <span v-html="currentIcon.code"></span>
+                     </template>
+                  </icon>
+               </div>
+               <div class="right-bar-info">
+                  <p>名称<br /><span>{{ currentIcon.name }}</span></p>
+                  <p>创建人<br /><span>{{ currentIcon.creator }}</span></p>
+                  <p>创建时间<br /><span>{{ currentIcon.createTime }}</span></p>
+                  <p>更新时间<br /><span>{{ currentIcon.updateTime || '无' }}</span></p>
+               </div>
+            </a-card>
          </div>
       </a-card>
 
 
       <!-- 添加/编辑对话框 -->
-      <a-modal v-model:open="iconModelShow" :title="(isEdit ? '编辑' : '添加') + '图标'" @ok="iconFormSubmit">
+      <a-modal v-model:open="iconModelShow" :title="(isEdit ? '编辑' : '添加') + '图标'" @cancel="iconFormReset"
+         @ok="iconFormSubmit">
          <a-form :model="currentIcon" :label-col="{ span: 4 }" :wrapper-col="{ span: 19 }" ref="iconFormEl">
             <a-form-item label="名称" name="name" :rules="[{ required: true, message: '请输入图标名称!' }]">
                <a-input v-model:value="currentIcon.name" />
@@ -86,12 +110,26 @@ const iconModelShow = ref(false);
 const isEdit = ref(false);
 // 表单实例
 const iconFormEl = ref<FormExpose | null>(null);
+// 多选的图标列表
+const selectedIconList = ref<number[]>([]);
 
 
 
 getIconList();
 
 
+
+// 图标点击事件 【选中】
+function iconClick(icon: MyIconType) {
+   let selectedIcon: MyIconType = JSON.parse(JSON.stringify(icon));
+   currentIcon.value = selectedIcon;
+   // 如果已经选中了,则取消选中
+   if (selectedIconList.value.includes(selectedIcon.id!)) {
+      selectedIconList.value = selectedIconList.value.filter(item => item != selectedIcon.id);
+      return;
+   }
+   selectedIconList.value.push(selectedIcon.id!);
+}
 // 删除图标
 async function deleteIcon(icon: MyIconType) {
    let result = await IconAPI.deleteIcon(icon.id!);
@@ -179,6 +217,7 @@ async function getIconList() {
 }
 
 .border-def {
+   border: 2px solid transparent;
    cursor: pointer;
    transition: all .3s;
    border-radius: 10px;
@@ -196,7 +235,6 @@ async function getIconList() {
 }
 
 .right-bar {
-   border-radius: 10px;
    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
 }
 
@@ -211,7 +249,8 @@ async function getIconList() {
    width: 100%;
    height: 30%;
    background-color: rgba(0, 0, 0, .3);
-   border-radius: 10px;
+   /* border-radius: 10px; */
+   /* border-radius: 10px 10px 0 0; */
 }
 
 .border-def:hover .hover-icon {
@@ -227,5 +266,44 @@ async function getIconList() {
 
 .icon-item:hover {
    background-color: #418efa;
+}
+
+/* 图标选中 */
+.icon-active {
+   border: 2px solid #418efa;
+   transition: all .3s;
+}
+
+/* 右边栏图标 */
+.right-bar-icon {
+   position: absolute;
+   left: 50%;
+   transform: translate(-50%);
+   top: 10px;
+   border-radius: 10px;
+   box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
+
+/* 右边栏信息 */
+.right-bar-info {
+   width: 100%;
+   height: 70%;
+   position: absolute;
+   bottom: 0;
+   /* background-color: #418efa; */
+
+   >p {
+      font-size: 12px;
+      color: gray;
+      margin: 0;
+      padding: 10px;
+
+      >span {
+         font-size: 14px;
+         margin-left: 5px;
+         color: #000;
+         /* font-weight: bold; */
+      }
+   }
 }
 </style>

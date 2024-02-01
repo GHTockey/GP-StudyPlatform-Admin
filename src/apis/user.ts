@@ -21,7 +21,7 @@ export class UserAPI {
       return request<null>("/user-service/user", "POST", data)
    };
    /** 删除用户 API */
-   static deleteUser(id: string) {
+   static deleteUser(id: number) {
       return request<null>(`/user-service/user/${id}`, "DELETE")
    };
    /** 编辑用户 API */

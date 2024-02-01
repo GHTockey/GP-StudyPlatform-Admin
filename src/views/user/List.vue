@@ -274,7 +274,7 @@ async function handleOk() {
 };
 // 删除用户 【提交】
 async function handleDelUser(user: User) {
-   let result = await UserAPI.deleteUser(user.id as string);
+   let result = await UserAPI.deleteUser(user.id!);
    if (result.code == 20000) {
       message.success(result.message);
       getUserList(pageVo.value.current, pageVo.value.pageSize, userListVo.value);
