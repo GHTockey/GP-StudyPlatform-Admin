@@ -4,8 +4,8 @@
          <template #extra>
             <a-button style="margin-left: 10px;" @click="iconFormOpen(false)">添加图标</a-button>
             <a-badge :count="selectedIconList.length">
-               <a-button type="primary" danger :disabled="!selectedIconList.length"
-                  style="margin-left: 10px;">批量删除</a-button>
+               <a-button type="primary" danger :disabled="!selectedIconList.length" style="margin-left: 10px;"
+                  @click="deleteIconList">批量删除</a-button>
             </a-badge>
          </template>
 
@@ -43,15 +43,16 @@
                <div class="right-bar-icon">
                   <icon style="width: 100px;">
                      <template #component>
-                        <span v-html="currentIcon.code"></span>
+                        <span v-html="showIcon.code"></span>
                      </template>
                   </icon>
                </div>
                <div class="right-bar-info">
-                  <p>名称<br /><span>{{ currentIcon.name }}</span></p>
-                  <p>创建人<br /><span>{{ currentIcon.creator }}</span></p>
-                  <p>创建时间<br /><span>{{ currentIcon.createTime }}</span></p>
-                  <p>更新时间<br /><span>{{ currentIcon.updateTime || '无' }}</span></p>
+                  <p>ID<br /><span>{{ showIcon.id }}</span></p>
+                  <p>名称<br /><span>{{ showIcon.name }}</span></p>
+                  <p>创建人<br /><span>{{ showIcon.creator }}</span></p>
+                  <p>创建时间<br /><span>{{ showIcon.createTime }}</span></p>
+                  <p>更新时间<br /><span>{{ showIcon.updateTime || '无' }}</span></p>
                </div>
             </a-card>
          </div>
@@ -89,7 +90,7 @@ import { IconAPI } from "@/apis/icon";
 import { ref } from 'vue';
 import type { Icon as MyIconType } from "@/types/Icon";
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
-import { message } from 'ant-design-vue';
+import { Modal, message } from 'ant-design-vue';
 import { useUserStore } from "@/stores/user";
 
 
@@ -112,6 +113,15 @@ const isEdit = ref(false);
 const iconFormEl = ref<FormExpose | null>(null);
 // 多选的图标列表
 const selectedIconList = ref<number[]>([]);
+// 展示的图标
+const showIcon = ref<MyIconType>({
+   id: undefined,
+   name: '',
+   code: '',
+   creator: '',
+   createTime: '',
+   updateTime: ''
+});
 
 
 
@@ -123,6 +133,7 @@ getIconList();
 function iconClick(icon: MyIconType) {
    let selectedIcon: MyIconType = JSON.parse(JSON.stringify(icon));
    currentIcon.value = selectedIcon;
+   showIcon.value = selectedIcon;
    // 如果已经选中了,则取消选中
    if (selectedIconList.value.includes(selectedIcon.id!)) {
       selectedIconList.value = selectedIconList.value.filter(item => item != selectedIcon.id);
@@ -132,13 +143,34 @@ function iconClick(icon: MyIconType) {
 }
 // 删除图标
 async function deleteIcon(icon: MyIconType) {
-   let result = await IconAPI.deleteIcon(icon.id!);
+   let result = await IconAPI.deleteIcon([icon.id!]);
    if (result.code == 20000) {
       message.success(result.message)
       getIconList();
    } else {
       message.error(result.message)
    }
+}
+// 批量删除
+async function deleteIconList() {
+   if (selectedIconList.value.length == 0) {
+      message.error('请先选择图标!')
+      return;
+   }
+   Modal.confirm({
+      title: '确定要删除吗?',
+      content: `将删除${selectedIconList.value.length}项图标,不可恢复,请确定!`,
+      onOk: async () => {
+         let result = await IconAPI.deleteIcon(selectedIconList.value);
+         if (result.code == 20000) {
+            message.success(result.message)
+            getIconList();
+            selectedIconList.value = [];
+         } else {
+            message.error(result.message)
+         }
+      }
+   });
 }
 // 图标表单 【打开】
 function iconFormOpen(isEditParma: boolean, icon?: MyIconType) {
@@ -279,7 +311,7 @@ async function getIconList() {
    position: absolute;
    left: 50%;
    transform: translate(-50%);
-   top: 10px;
+   top: 30px;
    border-radius: 10px;
    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }

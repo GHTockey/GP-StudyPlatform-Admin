@@ -1,3 +1,5 @@
+import type { Icon } from "./Icon"
+
 export type User = {
    id?: number,
    username: string
@@ -15,8 +17,9 @@ export type Permission = {
    path: string,
    children?: Permission[] | null,
    halfCheck?: number,
-   disabled?: boolean, // 是否禁用 用于树形控件
-   type: 'page' | 'operate' | null
+   type: 'page' | 'operate' | null,
+   icon?: Icon | null,
+   disabled?: boolean, // 是否禁用 仅用于树形控件
 }
 export type UserListVo = {
    rid?: number,

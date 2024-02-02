@@ -17,6 +17,14 @@
                   </a-popconfirm>
                </a-space>
             </template>
+            <!-- 图标 -->
+            <template v-if="text?.column.key == 'icon'">
+               <icon style="width: 30px;">
+                  <template #component>
+                     <span v-html="text.record.icon?.code"></span>
+                  </template>
+               </icon>
+            </template>
          </template>
       </a-table>
 
@@ -36,11 +44,17 @@
                </div>
             </a-form-item>
 
+            <a-form-item label="父级" name="parentId">
+               <a-cascader v-model:value="currentPermForm.parentIdArr" @change="(<any>onChange)" change-on-select
+                  :field-names="{ label: 'name', value: 'id', children: 'children' }" :options="(<any>permList)"
+                  placeholder="没有选择默认为顶级权限" />
+            </a-form-item>
+
             <a-form-item label="类型" name="type" :rules="[{ required: true, message: '请选择权限类型' }]">
                <a-radio-group v-model:value="currentPermForm.type" button-style="solid">
                   <a-radio-button value="page">页面</a-radio-button>
                   <a-radio-button value="operate">操作</a-radio-button>
-               </a-radio-group>   
+               </a-radio-group>
                <span v-if="currentPermForm.type == 'page'">
                   [页面]影响左侧菜单栏权限
                </span>
@@ -49,11 +63,34 @@
                </span>
             </a-form-item>
 
-            <a-form-item label="父级" name="parentId">
-               <a-cascader v-model:value="currentPermForm.parentIdArr" @change="(<any>onChange)" change-on-select
-                  :field-names="{ label: 'name', value: 'id', children: 'children' }" :options="(<any>permList)"
-                  placeholder="没有选择默认为顶级权限" />
+            <a-form-item label="图标" name="icon">
+               <div style="width: 32px; height: 32px; position: absolute; left: 80px;">
+                  <template v-if="!currentPermForm.icon">
+                     <div style="color: grey; width: 100px; height: 100%; line-height: 32px;"> 未选择图标 </div>
+                  </template>
+                  <icon v-else>
+                     <template #component>
+                        <span v-html="currentPermForm.icon?.code"></span>
+                     </template>
+                  </icon>
+               </div>
+               <a-tooltip color="#fff" trigger="click" placement="bottomLeft">
+                  <a-button>选择</a-button>
+                  <template #title>
+                     <div class="select-icon-box">
+                        <div v-for="(item, index) in iconList" :key="index" class="select-icon-item" :title="item.name"
+                           @click="selectIconHandler(item.id!)">
+                           <icon style="width: 100%;">
+                              <template #component>
+                                 <span v-html="item.code"></span>
+                              </template>
+                           </icon>
+                        </div>
+                     </div>
+                  </template>
+               </a-tooltip>
             </a-form-item>
+
          </a-form>
       </a-modal>
    </div>
@@ -67,6 +104,9 @@ import type { ColumnsType } from 'ant-design-vue/es/table';
 import { h, ref } from 'vue';
 import { buildTree } from "@/utils/myTool";
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
+import Icon from '@ant-design/icons-vue';
+import type { Icon as IconType } from '@/types/Icon';
+import { IconAPI } from '@/apis/icon';
 
 
 // 权限列表
@@ -74,6 +114,7 @@ const permList = ref<Permission[]>([]);
 // 表格对应数据
 const columns: ColumnsType = [
    { title: 'ID', key: 'id', dataIndex: 'id', width: 120 },
+   { title: '图标', key: 'icon', dataIndex: 'icon', align: 'center', width: 80 },
    { title: '名称', key: 'name', dataIndex: 'name' },
    { title: '路径', key: 'path', dataIndex: 'path' },
    { title: '类型', key: 'type', dataIndex: 'type' },
@@ -88,7 +129,8 @@ const currentPermForm = ref<Permission & { parentIdArr: number[] }>({
    parentId: 0,
    parentIdArr: [],
    id: 0,
-   type: null
+   type: null,
+   icon: null
 });
 // 添加权限 表单实例
 const addPermFormEl = ref<FormExpose | null>(null);
@@ -98,13 +140,27 @@ const parentPath = ref<string>('');
 const isEditPerm = ref(false);
 // 当前选中的权限 【响应式】
 const currentPermReactive = ref<Permission>();
+// 图标列表
+const iconList = ref<IconType[]>();
 
 
 
 getPermList();
+getIconList();
 
 
 
+// 图标选择事件
+function selectIconHandler(id: number) {
+   currentPermForm.value.icon = JSON.parse(JSON.stringify(iconList.value?.find((item) => item.id == id)));
+}
+// 获取图标列表
+async function getIconList() {
+   let result = await IconAPI.getIconList();
+   if (result.code == 20000) {
+      iconList.value = result.data;
+   }
+}
 // 删除权限 
 function handleDelPerm(perm: Permission) {
    return new Promise(async (resolve) => {
@@ -236,8 +292,39 @@ async function getPermList() {
 }
 </script>
 
-<style>
+<style scoped>
 .table-style {
    background-color: rgba(220, 220, 220, 0.689);
+}
+
+/* 选择图标 Box */
+.select-icon-box {
+   padding: 8px 8px 8px 0px;
+   display: flex;
+   gap: 5px;
+   flex-wrap: wrap;
+   justify-content: space-evenly;
+   max-width: 350px;
+   max-height: 100px;
+   overflow-y: auto;
+}
+
+/* 选择图标 item  */
+.select-icon-item {
+   width: 30px;
+   height: 30px;
+   border-radius: 5px;
+   cursor: pointer;
+   box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+   transition: all 0.3s;
+}
+
+.select-icon-item:hover {
+   transform: scale(1.1);
+   transition: all 0.3s;
+   box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+   border-radius: 8px;
+   background-color: rgba(255, 255, 255, 0.689);
+
 }
 </style>

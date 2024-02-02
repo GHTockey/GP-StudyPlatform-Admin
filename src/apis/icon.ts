@@ -8,14 +8,14 @@ export class IconAPI {
    };
    /* 添加图标 API */
    static addIcon(data: Icon) {
-      return request<string>('icon-service/icon', 'POST', data)
+      return request<null>('icon-service/icon', 'POST', data)
    };
    /* 删除图标 API */
-   static deleteIcon(id: number) {
-      return request<string>('icon-service/icon/' + id, 'DELETE')
+   static deleteIcon(ids: number[]) {
+      return request<null>('icon-service/icon/' + ids.join(','), 'DELETE')
    };
    /* 修改图标 API */
    static updateIcon(data: Icon) {
-      return request<string>('icon-service/icon', 'PUT', data)
+      return request<null>('icon-service/icon', 'PUT', data)
    };
 }
