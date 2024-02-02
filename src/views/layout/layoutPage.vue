@@ -6,6 +6,9 @@
             <!-- <TestMenu :permission-list="permissionList || []" /> -->
             <a-menu v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
                mode="inline" :items="items">
+               <template #default="text">
+                  {{ text }}
+               </template>
             </a-menu>
          </a-layout-sider>
          <a-layout-content>

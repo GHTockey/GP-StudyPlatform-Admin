@@ -1,7 +1,7 @@
 <template>
    <div class="list-container">
       <a-table :columns="columns" :data-source="permList" rowKey="id" v-if="permList?.length > 0" bordered
-         :pagination="false" :rowClassName="(record => record.parentId == 0 ? 'table-style' : '')" default-expand-all-rows>
+         :pagination="false" :rowClassName="(record => record.parentId == 0 ? 'table-style' : '')">
          <!-- 页头 -->
          <template #footer>
             <a-button @click="handleAddPerm()">添加权限</a-button>
@@ -74,7 +74,9 @@
                      </template>
                   </icon>
                </div>
-               <a-tooltip color="#fff" trigger="click" placement="bottomLeft">
+               <a-button v-if="currentPermForm.icon" type="dashed" danger
+                  @click="currentPermForm.icon = null;">清除</a-button>
+               <a-tooltip v-else color="#fff" trigger="click" placement="bottomLeft">
                   <a-button>选择</a-button>
                   <template #title>
                      <div class="select-icon-box">
