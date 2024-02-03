@@ -30,7 +30,12 @@ const router = createRouter({
           path: '/icon', name:'图标管理', children: [
             { path: 'list', name: '图标列表', component: () => import('@/views/icon/List.vue') }
           ]
-        }
+        },
+        {
+          path: '/classes', name:'班级管理', children: [
+            { path: 'list', name: '班级列表', component: () => import('@/views/classes/List.vue') }
+          ]
+        },
       ]
     },
     { path: '/login', name: '用户登录', component: () => import('@/views/user/login.vue') }
