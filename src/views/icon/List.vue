@@ -1,6 +1,6 @@
 <template>
    <div class="icon-list">
-      <a-card title="图标列表" style="height: 100%;">
+      <a-card :title="`图标列表 (${iconList.length}个)`" style="height: 100%;">
          <template #extra>
             <a-button style="margin-left: 10px;" @click="iconFormOpen(false)">添加图标</a-button>
             <a-badge :count="selectedIconList.length">
@@ -27,7 +27,7 @@
                      {{ item.name }}
                   </span>
                   <!-- hover 操作 -->
-                  <div class="hover-icon">
+                  <div class="hover-icon" @click.stop>
                      <EditFilled class="icon-item" title="编辑图标" @click="iconFormOpen(true, item)" />
                      <a-popconfirm title="删除后不可恢复,请确定!" @confirm="deleteIcon(item)" ok-text="确定" cancel-text="取消">
                         <DeleteFilled class="icon-item" title="删除图标" />
@@ -36,10 +36,7 @@
                </div>
             </a-flex>
             <!-- 右边栏 -->
-            <!-- <div class="right-bar" style=" width: 300px;">
-               123
-            </div> -->
-            <a-card class="right-bar" style="width: 300px;">
+            <a-card class="right-bar" style="width: 300px;" v-show="showIcon.id">
                <div class="right-bar-icon">
                   <icon style="width: 100px;">
                      <template #component>
@@ -66,15 +63,19 @@
             <a-form-item label="名称" name="name" :rules="[{ required: true, message: '请输入图标名称!' }]">
                <a-input v-model:value="currentIcon.name" />
             </a-form-item>
-            <a-form-item label="svg 代码" name="code" :rules="[{ required: true, message: '请输入 svg 代码!' }]">
+            <a-form-item label="svg 代码" name="code" :rules="[{ required: true, validator: checkSvgCode }]">
                <a-textarea @input="svgCodeHandler" v-model:value="currentIcon.code"
-                  :auto-size="{ minRows: 2, maxRows: 5 }" />
+                  :auto-size="{ minRows: 3, maxRows: 5 }" />
+            </a-form-item>
+            <a-form-item label="颜色" :wrapper-col="{ span: 8 }">
+               <a-input type="color" :disabled="!currentIcon.code" v-model:value="color"
+                  @input="lodash.debounce(svgColorHandler, 100)()"></a-input>
             </a-form-item>
             <a-form-item label="预览">
                <div style="width: 128px; height: 128px; padding: 10px; border: 2px dotted gainsboro; border-radius: 10px;">
                   <icon>
                      <template #component>
-                        <span v-html="currentIcon.code"></span>
+                        <span v-html="currentIcon.code" ref="svgBox"></span>
                      </template>
                   </icon>
                </div>
@@ -92,6 +93,8 @@ import type { Icon as MyIconType } from "@/types/Icon";
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
 import { Modal, message } from 'ant-design-vue';
 import { useUserStore } from "@/stores/user";
+import type { Rule } from 'ant-design-vue/es/form';
+import lodash from "lodash";
 
 
 const userStore = useUserStore();
@@ -122,6 +125,10 @@ const showIcon = ref<MyIconType>({
    createTime: '',
    updateTime: ''
 });
+// 选择的颜色
+const color = ref('#fff');
+// svg box 
+const svgBox = ref<HTMLSpanElement | null>(null);
 
 
 
@@ -129,17 +136,38 @@ getIconList();
 
 
 
+// 自定义校验 检查svg 代码  (记录：使用自定义校验会使原先的校验失效，所有的校验都要整合到 自定义校验中)
+const checkSvgCode = async (_rule: Rule, value: string) => {
+   // 判空
+   if (value == '') return Promise.reject('svg 代码不能为空!');
+   // 判断是否是 svg 代码
+   if (!value.includes('<svg')) return Promise.reject('svg 代码不正确!');
+
+   return Promise.resolve();
+};
 // 图标点击事件 【选中】
 function iconClick(icon: MyIconType) {
    let selectedIcon: MyIconType = JSON.parse(JSON.stringify(icon));
    currentIcon.value = selectedIcon;
-   showIcon.value = selectedIcon;
    // 如果已经选中了,则取消选中
    if (selectedIconList.value.includes(selectedIcon.id!)) {
       selectedIconList.value = selectedIconList.value.filter(item => item != selectedIcon.id);
-      return;
+   } else {
+      selectedIconList.value.push(selectedIcon.id!);
    }
-   selectedIconList.value.push(selectedIcon.id!);
+
+   if (selectedIconList.value.length) {
+      showIcon.value = iconList.value.find(item => item.id == selectedIconList.value[selectedIconList.value.length - 1])!;
+   } else {
+      showIcon.value = {
+         id: undefined,
+         name: '',
+         code: '',
+         creator: '',
+         createTime: '',
+         updateTime: ''
+      };
+   }
 }
 // 删除图标
 async function deleteIcon(icon: MyIconType) {
@@ -147,6 +175,7 @@ async function deleteIcon(icon: MyIconType) {
    if (result.code == 20000) {
       message.success(result.message)
       getIconList();
+      selectedIconList.value = [];
    } else {
       message.error(result.message)
    }
@@ -172,7 +201,7 @@ async function deleteIconList() {
       }
    });
 }
-// 图标表单 【打开】
+// 图标表单 【打开 添加-编辑】
 function iconFormOpen(isEditParma: boolean, icon?: MyIconType) {
    isEdit.value = isEditParma;
    iconModelShow.value = true;
@@ -180,6 +209,10 @@ function iconFormOpen(isEditParma: boolean, icon?: MyIconType) {
       currentIcon.value = JSON.parse(JSON.stringify(icon));
    } else {
       iconFormReset();
+   }
+   // 回显颜色
+   if (currentIcon.value.code) {
+      color.value = currentIcon.value.code.match(/<svg.*?fill="(.*?)"/)?.[1] || '';
    }
 }
 // 图标表单 【重置】
@@ -223,6 +256,34 @@ async function iconFormSubmit() {
 function svgCodeHandler() {
    if (!currentIcon.value.code) return;
    currentIcon.value.code = currentIcon.value.code.replace(/width="[^"]+"/g, 'width="100%"').replace(/height="[^"]+"/g, '');
+
+   // // 使用 获取元素的方式设置 width 100% 
+   // let svgEl = svgBox.value?.children[0];
+   // if (svgEl) {
+   //    svgEl.setAttribute('width', '100%');
+   //    svgEl.removeAttribute('height');
+   //    // console.log(svgBox.value?.innerText);
+   //    setTimeout(() => {
+   //       currentIcon.value.code = svgBox.value?.innerHTML!
+   //    }, 100);
+   // }
+}
+// svg 代码处理 [颜色设置] (使用正侧表达式将 fill="xxx" 替换为 fill="parma")
+const svgColorHandler = () => {
+
+   // console.log(111);
+   let svgEl = svgBox.value?.children[0];
+   if (svgEl) {
+      // svgEl.children[0].removeAttribute('fill');
+      for (let i = 0; i < svgEl.children.length; i++) {
+         svgEl.children[i].removeAttribute('fill');
+      }
+      svgEl.setAttribute('fill', color.value);
+      currentIcon.value.code = svgBox.value?.innerHTML!
+   } else {
+      // console.log('svg代码不正确');
+   }
+
 }
 // 获取图标列表
 async function getIconList() {
