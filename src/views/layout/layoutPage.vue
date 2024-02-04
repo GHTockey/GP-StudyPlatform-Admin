@@ -15,7 +15,7 @@
             <RouterView />
          </a-layout-content>
       </a-layout>
-      <a-layout-footer style="border-top: 1px solid gray;">Footer</a-layout-footer>
+      <!-- <a-layout-footer style="border-top: 1px solid gray;">Footer</a-layout-footer> -->
    </a-layout>
 </template>
 
