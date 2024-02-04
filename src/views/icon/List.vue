@@ -294,7 +294,7 @@ async function getIconList() {
 }
 </script>
 
-<style>
+<style scoped>
 .icon-list {
    padding: 10px;
    height: 100%;

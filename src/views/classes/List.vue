@@ -13,17 +13,17 @@
                <!-- 项目 -->
                <div v-for="(item, index) in classesList" :key="item.id" style="transition: all 0.3s;">
                   <!-- 标题与创建者 -->
-                  <div>
+                  <div style="width: 180px;">
                      <!-- <a-typography-title :level="4">数字媒体设计1班</a-typography-title> -->
-                     <a style="color: black; margin: 0 0 5px 0; font-weight: 600; font-size: 18px;" @click.stop="listItemClick(item)">{{
-                        item.name }}</a>
+                     <a style="color: black; margin: 0 0 5px 0; font-weight: 600; font-size: 18px;"
+                        @click.stop="ItemTitleClick(item)">{{
+                           item.name }}</a>
                      <div style="display: flex; align-items: center;">
                         <a-avatar size="small" icon="user" :src="item.creator?.avatar" />
                         <span style="margin-left: 5px; margin-right: 20px;">{{ item.creator?.username || 'uName' }}</span>
                         <a-avatar-group style="align-self: flex-end;" :max-count="3"
                            :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf', width: '24px', height: '24px', lineHeight: '24px' }">
-                           <a-avatar v-for="(item, index) in 5" :key="index" size="small"
-                              src="https://img.tockey.cn/gp/流汗黄豆.png" />
+                           <a-avatar v-for="(user, index) in item.userList" :key="index" size="small" :src="user.avatar" />
                         </a-avatar-group>
                      </div>
                   </div>
@@ -36,7 +36,8 @@
                   <div>
                      <a-space>
                         <a-button type="primary" @click="isEdit = true; openClassesModel(item)">编辑</a-button>
-                        <a-popconfirm title="删除后不可恢复,请确定!" @confirm="deleteClasses(item.id!)" ok-text="确定" cancel-text="取消">
+                        <a-popconfirm title="删除后不可恢复,请确定!" @confirm="deleteClasses(item.id!)" ok-text="确定"
+                           cancel-text="取消">
                            <a-button type="dashed">删除</a-button>
                         </a-popconfirm>
                      </a-space>
@@ -59,8 +60,8 @@
                      <p style="color: #a7a7a8;">成员</p>
                      <a-avatar-group style="align-self: flex-end;" :max-count="5"
                         :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf', width: '24px', height: '24px', lineHeight: '24px' }">
-                        <a-avatar v-for="(item, index) in 10" :key="index" size="small"
-                           src="https://img.tockey.cn/gp/流汗黄豆.png" />
+                        <a-avatar v-for="(item, index) in showClassesData?.userList" :key="index" size="small"
+                           :src="item.avatar" />
                      </a-avatar-group>
                   </div>
                   <!-- 其它 -->
@@ -142,8 +143,12 @@ async function deleteClasses(id: number) {
       message.error('删除失败');
    }
 }
-// 列表项 点击事件
-function listItemClick(item: Classes) {
+// 班级名字点击事件
+function ItemTitleClick(item: Classes) {
+   if (item.id == showClassesData.value?.id) {
+      showClassesData.value = undefined;
+      return
+   }
    showClassesData.value = JSON.parse(JSON.stringify(item));
 }
 // 弹窗 OK按钮 【提交】

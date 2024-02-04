@@ -126,7 +126,7 @@ import type { ColumnsType } from 'ant-design-vue/es/table';
 import { ref } from 'vue';
 import { roleColor } from "@/utils/myTool";
 import { RoleApi } from '@/apis/role';
-import { message, type UploadChangeParam, type UploadProps } from 'ant-design-vue';
+import { message, type UploadChangeParam, type UploadFile, type UploadProps } from 'ant-design-vue';
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
 import { PlusOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons-vue';
 import { OtherAPI } from "@/apis/other";
@@ -214,12 +214,12 @@ const handleChange = (info: UploadChangeParam) => {
    }
 };
 // 文件校验
-const beforeUpload = (file: UploadProps['fileList'][number]) => {
+const beforeUpload = (file: UploadFile) => {
    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
    if (!isJpgOrPng) {
       message.error('只能上传JPG/PNG格式的文件!');
    }
-   const isLt2M = file.size / 1024 / 1024 < 2;
+   const isLt2M = file.size! / 1024 / 1024 < 2;
    if (!isLt2M) {
       message.error('图片必须小于2MB!');
    }
