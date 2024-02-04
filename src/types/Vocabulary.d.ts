@@ -1,6 +1,6 @@
 // 添加时的词集
 export type Vocabulary = {
-   authorId: string | undefined,
+   authorId: string | number,
    desc: string,
    title: string,
    cover: string,

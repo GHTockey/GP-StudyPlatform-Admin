@@ -4,6 +4,12 @@
          <template #extra>123</template> -->
 
       <a-table :dataSource="VocabularyList" :columns="columns">
+         <!-- 表头行 -->
+         <template #title>
+            <a-space>
+               <a-button type="primary" @click="modalOpen()">添加</a-button>
+            </a-space>
+         </template>
 
          <template #bodyCell="cell">
             <!-- 名称列 -->
@@ -20,8 +26,11 @@
             <!-- 操作列 -->
             <template v-if="cell?.column.key == 'control'">
                <a-space>
-                  <a-button :icon="h(EditOutlined)" type="primary" shape="circle" title="编辑" />
-                  <a-button :icon="h(DeleteOutlined)" type="primary" danger shape="circle" title="删除" />
+                  <a-button @click="modalOpen(<Vocabulary>cell.record)" :icon="h(EditOutlined)" type="primary"
+                     shape="circle" title="编辑" />
+                  <a-popconfirm  title="删除后不可恢复,请确定!" @confirm="delVocabulary(cell.record.id)" >
+                     <a-button :icon="h(DeleteOutlined)" type="primary" danger shape="circle" title="删除" />
+                  </a-popconfirm>
                </a-space>
             </template>
          </template>
@@ -30,9 +39,9 @@
       <!-- </a-card> -->
 
       <!-- 添加/编辑弹窗 -->
-      <a-modal :open="vocabModalShow" :title="isEdit ? '编辑词集' : '添加词集'" @cancel="modalClose">
-         <a-form :model="currentVocabulary" :labelCol="{ span: 3 }" :wrapperCol="{ span: 19 }">
-            <a-form-item label="封面">
+      <a-modal :open="vocabModalShow" :title="isEdit ? '编辑词集' : '添加词集'" @cancel="modalClose" @ok="modalOk">
+         <a-form :model="currentVocabulary" :labelCol="{ span: 3 }" :wrapperCol="{ span: 19 }" ref="vocabModalEl">
+            <a-form-item label="封面" name="cover">
                <a-upload v-if="!currentVocabulary.cover" v-model:file-list="fileList" name="avatar"
                   list-type="picture-card" class="avatar-uploader" :show-upload-list="false" :before-upload="beforeUpload"
                   @change="handleChange" :custom-request="uploadAvatar">
@@ -47,16 +56,17 @@
                </a-tooltip>
 
             </a-form-item>
-            <a-form-item label="名称" :rules="{ required: true, message: '请输入名称' }">
+            <a-form-item label="名称" name="title" :rules="{ required: true, message: '请输入名称' }">
                <a-input v-model:value="currentVocabulary.title" />
             </a-form-item>
-            <a-form-item label="描述">
+            <a-form-item label="描述" name="desc">
                <a-textarea v-model:value="currentVocabulary.desc" />
             </a-form-item>
             <!-- <a-form-item label="词集" :rules="{ required: true, message: '请输入词集' }">
                <a-textarea v-model:value="currentVocabulary.vocab" />
             </a-form-item> -->
          </a-form>
+         {{ currentVocabulary }}
       </a-modal>
    </div>
 </template>
@@ -70,9 +80,11 @@ import { EditOutlined, DeleteOutlined, LoadingOutlined, PlusOutlined } from '@an
 import { message, type UploadFile, type UploadChangeParam } from 'ant-design-vue';
 import type { UploadRequestOption } from 'ant-design-vue/es/vc-upload/interface';
 import { OtherAPI } from '@/apis/other';
+import type { FormExpose } from 'ant-design-vue/es/form/Form';
+import { useUserStore } from "@/stores/user";
 
 
-
+const userStore = useUserStore();
 // 词集列表
 const VocabularyList = ref<Vocabulary[]>([])
 // 表格对应数据
@@ -86,12 +98,12 @@ const columns: ColumnsType = [
    { title: '操作', key: 'control' },
 ]
 // 弹窗显示开关
-const vocabModalShow = ref(true)
+const vocabModalShow = ref(false)
 // 是否编辑
 const isEdit = ref(false)
 // 当前选中的词集
 const currentVocabulary = ref<Vocabulary>({
-   authorId: undefined,
+   authorId: '',
    desc: '',
    title: '',
    cover: '',
@@ -101,6 +113,8 @@ const currentVocabulary = ref<Vocabulary>({
 const fileList = ref([]);
 // 上传loading
 const coverLoading = ref(false);
+// 表单实例
+const vocabModalEl = ref<FormExpose | null>(null)
 
 
 
@@ -108,11 +122,56 @@ getVocabularyList()
 
 
 
+// 删除词集 【提交】
+async function delVocabulary(id: number | string) {
+   const result = await VocabularyAPI.delVocabulary(id)
+   if (result.code == 20000) {
+      message.success('删除成功')
+      getVocabularyList()
+   } else {
+      message.error('删除失败')
+   }
+}
+// 弹窗确定 【提交】
+async function modalOk() {
+   try {
+      await vocabModalEl.value?.validateFields();
+      let result;
+      if (isEdit.value) {
+         // 编辑
+         result = await VocabularyAPI.updVocabulary(currentVocabulary.value)
+      } else {
+         // 添加
+         currentVocabulary.value.authorId = userStore.userInfo.id!
+         result = await VocabularyAPI.addVocabulary(currentVocabulary.value)
+      }
+      if (result.code == 20000) {
+         message.success('操作成功')
+         getVocabularyList()
+         modalClose()
+      } else {
+         message.error('操作失败')
+      }
+   } catch (error) {
+      console.log(error);
+      console.log('表单验证失败');
+   }
+}
+// 弹窗打开 【添加/编辑回显】
+function modalOpen(vocab?: Vocabulary) {
+   if (vocab) {
+      isEdit.value = true
+      // 回显
+      currentVocabulary.value = JSON.parse(JSON.stringify(vocab))
+   }
+   vocabModalShow.value = true
+
+}
 // 弹窗关闭 【清除】
 function modalClose() {
    vocabModalShow.value = false
    currentVocabulary.value = {
-      authorId: undefined,
+      authorId: '',
       desc: '',
       title: '',
       cover: '',
@@ -120,6 +179,8 @@ function modalClose() {
    }
    fileList.value = []
    coverLoading.value = false
+   isEdit.value = false
+   vocabModalEl.value?.resetFields()
 }
 // 弹窗图片点击 【点击清除封面】
 function clearCover() {
