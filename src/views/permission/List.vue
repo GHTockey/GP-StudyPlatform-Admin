@@ -1,5 +1,5 @@
 <template>
-   <div class="list-container">
+   <div class="list-container" style="padding: 10px;">
       <a-table :columns="columns" :data-source="permList" rowKey="id" v-if="permList?.length > 0" bordered
          :pagination="false" :rowClassName="(record => record.parentId == 0 ? 'table-style' : '')">
          <!-- 页头 -->
@@ -10,10 +10,10 @@
             <!-- 操作 -->
             <template v-if="text?.column.key == 'control'">
                <a-space>
-                  <a-button size="small" type="primary" @click="handleEditPerm(<Permission>text.record)">编辑</a-button>
-                  <a-popconfirm title="删除后不可恢复,请确定!" @confirm="handleDelPerm(<Permission>text.record)" ok-text="确定"
-                     cancel-text="取消">
-                     <a-button size="small" type="primary" danger>删除</a-button>
+                  <a-button @click="handleEditPerm(<Permission>text.record)" :icon="h(EditOutlined)" type="default"
+                     shape="circle" title="编辑" />
+                  <a-popconfirm title="删除后不可恢复,请确定!" @confirm="handleDelPerm(<Permission>text.record)" placement="left">
+                     <a-button :icon="h(DeleteOutlined)" type="default" danger shape="circle" title="删除" />
                   </a-popconfirm>
                </a-space>
             </template>
@@ -109,6 +109,8 @@ import type { FormExpose } from 'ant-design-vue/es/form/Form';
 import Icon from '@ant-design/icons-vue';
 import type { Icon as IconType } from '@/types/Icon';
 import { IconAPI } from '@/apis/icon';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+
 
 
 // 权限列表

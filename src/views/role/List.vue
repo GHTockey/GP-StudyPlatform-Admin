@@ -14,11 +14,10 @@
             <!-- 操作 -->
             <template v-if="text?.column.key == 'control'">
                <a-space>
-                  <a-button size="small" type="default" @click="handleEditRole(<Role>text.record)">编辑</a-button>
-                  <a-button size="small" type="primary" @click="handleSetRolePerm(<Role>text.record)">权限</a-button>
-                  <a-popconfirm title="删除后不可恢复,请确定!" @confirm="handleDelRole(<Role>text.record)" ok-text="确定"
-                     cancel-text="取消">
-                     <a-button size="small" type="primary" danger>删除</a-button>
+                  <a-button @click="handleEditRole(<Role>text.record)" :icon="h(EditOutlined)" shape="circle" title="编辑" />
+                  <a-button @click="handleSetRolePerm(<Role>text.record)" :icon="h(KeyOutlined)" shape="circle" type="primary" title="权限" />
+                  <a-popconfirm title="删除后不可恢复,请确定!" @confirm="handleDelRole(<Role>text.record)" placement="left">
+                     <a-button :icon="h(DeleteOutlined)" type="default" danger shape="circle" title="删除" />
                   </a-popconfirm>
                </a-space>
             </template>
@@ -29,7 +28,8 @@
          </template>
       </a-table>
       <!-- 添加/编辑弹框 -->
-      <a-modal v-model:open="roleModelShow" @ok="roleModelHandleOk" @cancel="resetAddRoleForm" cancelText="取消" okText="提交" :closable="false">
+      <a-modal v-model:open="roleModelShow" @ok="roleModelHandleOk" @cancel="resetAddRoleForm" cancelText="取消" okText="提交"
+         :closable="false">
          <template #title>{{ (isEditRole ? '编辑' : '添加') + '角色' }}</template>
          <a-form :model="currentRole" autocomplete="off" ref="addRoleFormEl">
             <a-form-item label="名称" name="name" :rules="{ required: true, message: '请输入角色名称' }">
@@ -61,7 +61,7 @@
 <script setup lang="ts">
 import { RoleApi } from "@/apis/role";
 import type { Permission, Role } from "@/types/User";
-import { ref } from "vue";
+import { ref, h } from "vue";
 import { buildTree, roleColor } from "@/utils/myTool";
 import { message, type TreeProps } from "ant-design-vue";
 import { PermApi } from "@/apis/perm";
@@ -69,6 +69,8 @@ import lodash from "lodash";
 import type { ColumnsType } from "ant-design-vue/es/table";
 import type { CheckInfo } from "ant-design-vue/es/vc-tree/props";
 import type { FormExpose } from "ant-design-vue/es/form/Form";
+import { EditOutlined, DeleteOutlined,KeyOutlined } from '@ant-design/icons-vue';
+
 
 // 角色列表
 const roleList = ref<Role[]>([]);
@@ -237,4 +239,11 @@ async function getRoleList() {
 }
 </script>
 
-<style lang="less"></style>
+<style>
+.role-container {
+   height: 100%;
+   padding: 10px;
+   overflow: auto;
+}
+
+</style>

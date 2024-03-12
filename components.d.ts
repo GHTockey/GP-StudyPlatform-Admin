@@ -19,6 +19,7 @@ declare module 'vue' {
     ACascader: typeof import('ant-design-vue/es')['Cascader']
     ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
     AComment: typeof import('ant-design-vue/es')['Comment']
+    AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
     ADivider: typeof import('ant-design-vue/es')['Divider']
     ADrawer: typeof import('ant-design-vue/es')['Drawer']
     ADropdown: typeof import('ant-design-vue/es')['Dropdown']

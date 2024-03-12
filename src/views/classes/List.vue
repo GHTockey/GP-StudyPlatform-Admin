@@ -35,10 +35,10 @@
                   <!-- 操作 -->
                   <div>
                      <a-space>
-                        <a-button type="primary" @click="isEdit = true; openClassesModel(item)">编辑</a-button>
-                        <a-popconfirm title="删除后不可恢复,请确定!" @confirm="deleteClasses(item.id!)" ok-text="确定"
-                           cancel-text="取消">
-                           <a-button type="dashed">删除</a-button>
+                        <a-button @click="isEdit = true; openClassesModel(item)" :icon="h(EditOutlined)" type="default"
+                           shape="circle" title="编辑" />
+                        <a-popconfirm title="删除后不可恢复,请确定!" @confirm="deleteClasses(item.id!)" placement="left">
+                           <a-button :icon="h(DeleteOutlined)" type="default" danger shape="circle" title="删除" />
                         </a-popconfirm>
                      </a-space>
                   </div>
@@ -103,8 +103,10 @@ import { ClassesAPI } from '@/apis/classes';
 import type { Classes } from '@/types/Claeese';
 import { message } from 'ant-design-vue';
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
-import { ref } from 'vue';
+import { ref,h } from 'vue';
 import { useUserStore } from "@/stores/user";
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+
 
 
 const userStore = useUserStore();

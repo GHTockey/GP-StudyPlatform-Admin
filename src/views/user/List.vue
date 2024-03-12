@@ -1,5 +1,5 @@
 <template>
-   <div class="list-container">
+   <div class="list-container" style="padding: 10px;">
       <!-- 用户列表表格 -->
       <a-table :dataSource="userList" :columns="columns" bordered :pagination="false">
          <template #bodyCell="cell">
@@ -21,10 +21,10 @@
             <!-- 操作列 -->
             <template v-if="cell?.column.key == 'control'">
                <a-space>
-                  <a-button type="default" size="small" @click="openEditUserModal(<User>cell?.record)">编辑</a-button>
-                  <a-popconfirm title="删除后不可恢复,请确定!" @confirm="handleDelUser(<User>cell?.record)" ok-text="确定"
-                     cancel-text="取消">
-                     <a-button type='primary' danger size="small">删除</a-button>
+                  <a-button @click="openEditUserModal(<User>cell?.record)" :icon="h(EditOutlined)" type="default"
+                     shape="circle" title="编辑" />
+                  <a-popconfirm  title="删除后不可恢复,请确定!" @confirm="handleDelUser(<User>cell?.record)" placement="left" >
+                     <a-button :icon="h(DeleteOutlined)" type="default" danger shape="circle" title="删除" />
                   </a-popconfirm>
                </a-space>
             </template>
@@ -123,12 +123,12 @@
 import { UserAPI } from '@/apis/user';
 import type { Role, User, UserListVo } from '@/types/User';
 import type { ColumnsType } from 'ant-design-vue/es/table';
-import { ref } from 'vue';
+import { ref,h } from 'vue';
 import { roleColor } from "@/utils/myTool";
 import { RoleApi } from '@/apis/role';
 import { message, type UploadChangeParam, type UploadFile, type UploadProps } from 'ant-design-vue';
 import type { FormExpose } from 'ant-design-vue/es/form/Form';
-import { PlusOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, LoadingOutlined, UserOutlined,EditOutlined,DeleteOutlined } from '@ant-design/icons-vue';
 import { OtherAPI } from "@/apis/other";
 import type { UploadRequestOption } from 'ant-design-vue/es/vc-upload/interface';
 

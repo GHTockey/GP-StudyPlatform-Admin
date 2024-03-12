@@ -44,6 +44,7 @@ async function onFinish(values: any) {
       userInfo.value = userLoginResult.data;
       // 存储token
       userStore.token = userLoginResult.other.token;
+      localStorage.setItem('token', userLoginResult.other.token);
       notification.success({
          message: userLoginResult.message,
          description: `欢迎回来，${userInfo.value.username}！`,

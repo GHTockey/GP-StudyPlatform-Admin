@@ -1,17 +1,21 @@
 <template>
-   <a-layout style="height: 100%;">
-      <a-layout-header><span style="color: white;">Header</span></a-layout-header>
+   <a-layout style="height: 100vh;">
+      <a-layout-header style="display: flex;">
+         <div style="color: white; cursor: pointer; font-weight: 600;" @click="$router.push('/')">
+            <span>LOGO ICON</span>
+            <span style="font-size: 16px; margin-left: 10px;">后台管理系统</span>
+         </div>
+      </a-layout-header>
       <a-layout>
-         <a-layout-sider>
+         <a-layout-sider width="230" v-model:collapsed="collapsed" collapsible>
             <!-- <TestMenu :permission-list="permissionList || []" /> -->
-            <a-menu v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
-               mode="inline" :items="items">
+            <a-menu theme="dark" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" mode="inline" :items="items">
                <template #default="text">
                   {{ text }}
                </template>
             </a-menu>
          </a-layout-sider>
-         <a-layout-content>
+         <a-layout-content style="padding: 8px;">
             <RouterView />
          </a-layout-content>
       </a-layout>
@@ -38,6 +42,7 @@ const permissionList = ref<Permission[]>();
 const items = ref<ItemType[]>([]);
 const openKeys = ref<string[]>([]);
 const selectedKeys = ref<string[]>([]);
+const collapsed = ref(true);
 
 
 

@@ -1,14 +1,14 @@
 // 添加时的词集
+// export type Vocabulary = {
+//    authorId: string | number,
+//    desc: string,
+//    title: string,
+//    cover: string,
+//    wordsList: Word[]
+// }
+// 词集
 export type Vocabulary = {
-   authorId: string | number,
-   desc: string,
-   title: string,
-   cover: string,
-   wordsList: Word[]
-}
-// 词集详情
-export type VocabularyData = {
-   id: number,
+   id: string,
    title: string,
    desc: string,
    cover: string,
@@ -16,7 +16,11 @@ export type VocabularyData = {
    authorId: string,
    createTime: string,
    updateTime: string,
-   wordsList: [] | Word[]
+   stuNum: number,
+   // 关联
+   wordsList?: Word[],
+   author?: User,
+   userList?: [] | User[],
 }
 // 词语
 export type Word = {

@@ -26,10 +26,10 @@
             <!-- 操作列 -->
             <template v-if="cell?.column.key == 'control'">
                <a-space>
-                  <a-button @click="modalOpen(<Vocabulary>cell.record)" :icon="h(EditOutlined)" type="primary"
+                  <a-button @click="modalOpen(<Vocabulary>cell.record)" :icon="h(EditOutlined)" type="default"
                      shape="circle" title="编辑" />
-                  <a-popconfirm  title="删除后不可恢复,请确定!" @confirm="delVocabulary(cell.record.id)" >
-                     <a-button :icon="h(DeleteOutlined)" type="primary" danger shape="circle" title="删除" />
+                  <a-popconfirm  title="删除后不可恢复,请确定!" @confirm="delVocabulary(cell.record.id)" placement="left" >
+                     <a-button :icon="h(DeleteOutlined)" type="default" danger shape="circle" title="删除" />
                   </a-popconfirm>
                </a-space>
             </template>
@@ -44,7 +44,7 @@
             <a-form-item label="封面" name="cover">
                <a-upload v-if="!currentVocabulary.cover" v-model:file-list="fileList" name="avatar"
                   list-type="picture-card" class="avatar-uploader" :show-upload-list="false" :before-upload="beforeUpload"
-                  @change="handleChange" :custom-request="uploadAvatar">
+                  @change="handleChange" :custom-request="uploadCover">
                   <div>
                      <LoadingOutlined v-if="coverLoading"></LoadingOutlined>
                      <PlusOutlined v-else></PlusOutlined>
@@ -225,8 +225,8 @@ const handleChange = (info: UploadChangeParam) => {
       message.error('upload error');
    }
 };
-// 上传头像
-async function uploadAvatar(file: UploadRequestOption) {
+// 上传封面
+async function uploadCover(file: UploadRequestOption) {
    currentVocabulary.value.cover = ''; // 清空
    const formData = new FormData();
    formData.append('file', file.file);
@@ -242,6 +242,8 @@ async function uploadAvatar(file: UploadRequestOption) {
 <style scoped>
 .vocab-list-container {
    padding: 10px;
+   height: 100%;
+   overflow: auto;
 
 
    /* 列表中的封面 */

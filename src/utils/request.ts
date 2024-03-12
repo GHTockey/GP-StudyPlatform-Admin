@@ -2,14 +2,17 @@ import type { Method, AxiosProgressEvent } from "axios";
 import axios from "axios";
 import { message } from 'ant-design-vue';
 
-let baseURL: string = "http://localhost:10010";
+// let baseURL: string = "http://localhost:10010";
+let baseURL: string = "/api"; // vite.config.ts 中配置了代理
 const service = axios.create({
    baseURL,
 });
 
 // 请求拦截
 service.interceptors.request.use(config => {
+   // console.log(123);
    let token = localStorage.getItem('token')
+   // console.log(token);
    if (token != null) {
       config.headers['Authorization'] = token
    }
