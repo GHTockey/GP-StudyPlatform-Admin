@@ -11,3 +11,10 @@ export type MyBatisPlusPage<T> = {
    size: number,
    total: number
 }
+
+// 网站信息
+export type Website = {
+   logoUrl: string;
+   name: string;
+   info: string;
+}

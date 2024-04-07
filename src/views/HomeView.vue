@@ -7,7 +7,7 @@
         <!-- 信息 左 -->
         <div>
           <p>欢迎回来</p>
-          <p> {{ userInfo.username }}
+          <p> {{ userInfo?.username }}
             <a-tag color="#f50">管理员</a-tag>
           </p>
           <span>上次登陆：2011-02-15</span>
@@ -55,7 +55,7 @@
         <div>
           <span>词集学习人数分布</span>
           <div>
-            <a-button type="primary">BTN</a-button>
+            <a-button type="primary">班级</a-button>
           </div>
         </div>
         <!-- 图表 -->
@@ -70,19 +70,19 @@
         <span>快捷入口</span>
         <div>
           <div>
-            <a-button type="dashed" shape="circle" size="large" :icon="h(UserOutlined)"></a-button>
+            <a-button type="dashed" shape="circle" size="large" :icon="h(LockFilled)"></a-button>
             <span>修改密码</span>
           </div>
           <div>
-            <a-button type="dashed" shape="circle" size="large" :icon="h(UserOutlined)"></a-button>
+            <a-button type="dashed" shape="circle" size="large" :icon="h(BellFilled)"></a-button>
             <span>班级申请</span>
           </div>
           <div>
-            <a-button type="dashed" shape="circle" size="large" :icon="h(UserOutlined)"></a-button>
+            <a-button type="dashed" shape="circle" size="large" :icon="h(CalendarFilled)"></a-button>
             <span>发布作业</span>
           </div>
           <div>
-            <a-button type="dashed" shape="circle" size="large" :icon="h(UserOutlined)"></a-button>
+            <a-button type="dashed" shape="circle" size="large" :icon="h(MessageFilled)"></a-button>
             <span>班级消息</span>
           </div>
         </div>
@@ -107,7 +107,11 @@ import {
   UserOutlined,
   KeyOutlined,
   FileTextOutlined,
-  TeamOutlined
+  TeamOutlined,
+  MessageFilled,
+  CalendarFilled,
+  BellFilled,
+  LockFilled
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { ref, h, onMounted } from 'vue';
@@ -130,7 +134,6 @@ onMounted(() => {
   if (userInfo.value) {
     // 获取词集排名列表
     getMostStudyVocList();
-
     // 获取一言
     getOneWord();
   }
@@ -158,7 +161,7 @@ function drawChart1() {
   if (data.length > 10) {
     data = data.splice(0, 10) // 最多10条数据
   }
-  console.log('开始绘制', data);
+  // console.log('开始绘制', data);
   // console.log(vocList.value.map(item => item.stuNum));
   // 基于准备好的dom，初始化echarts实例
   var myChart = echarts.init(chart1.value);
@@ -271,6 +274,7 @@ async function getOneWord() {
   width: 100%;
   height: 100%;
   min-height: 600px;
+  max-height: 850px;
   display: flex;
   overflow-y: auto;
   overflow-x: hidden;
@@ -286,6 +290,7 @@ async function getOneWord() {
       /* 用户盒子 */
       .user-box {
         display: flex;
+        /* flex-wrap: wrap; */
         justify-content: space-between;
         align-items: center;
         height: 180px;
@@ -293,7 +298,7 @@ async function getOneWord() {
         background-image: linear-gradient(to right, #243949 0%, #517fa4 100%);
 
         >div:nth-child(1) {
-          margin-left: 18px;
+          margin-left: 25px;
           color: white;
 
           >p:nth-child(1) {
@@ -310,6 +315,7 @@ async function getOneWord() {
           }
 
           >span {
+            display: block;
             font-size: 14px;
             color: #ccc;
             margin-right: 18px;

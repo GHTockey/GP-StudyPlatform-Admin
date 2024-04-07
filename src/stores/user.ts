@@ -4,7 +4,7 @@ import { ref } from "vue";
 
 export const useUserStore = defineStore("user_store", () => {
    // 用户信息
-   const userInfo = ref<User>({
+   const userInfo = ref<User|null>({
       username: "",
       avatar: "",
       email: ""

@@ -7,11 +7,11 @@ let cloudServiceURL = '';
 export class PermApi {
    /** 获取权限列表 API */
    static getPermList() {
-      return request<Permission[]>(`${cloudServiceURL}/permission/list`)
+      return request<Permission[]>(`${cloudServiceURL}/permission/list`, 'GET')
    };
    /** 获取权限 API */
    static getPerm(id: number) {
-      return request<Permission>(`${cloudServiceURL}/permission/${id}`)
+      return request<Permission>(`${cloudServiceURL}/permission/${id}`, 'GET')
    };
    /** 添加权限 API */
    static addPerm(data: Permission) {
@@ -19,11 +19,11 @@ export class PermApi {
    };
    /** 获取所有祖先权限ID API */
    static getAncestorIds(id: number) {
-      return request<number[]>(`${cloudServiceURL}/permission/parents/${id}`)
+      return request<number[]>(`${cloudServiceURL}/permission/parents/${id}`, 'GET')
    };
    /** 获取所有子级权限ID API */
    static getDescendantIds(id: number) {
-      return request<number[]>(`${cloudServiceURL}/permission/Descendant/${id}`)
+      return request<number[]>(`${cloudServiceURL}/permission/Descendant/${id}`, 'GET')
    };
    /** 编辑权限 API */
    static editPerm(data: Permission) {
@@ -35,6 +35,6 @@ export class PermApi {
    };
    /** 根据RID获取权限列表 API */
    static getPermListByRid(rid: number) {
-      return request<Permission[]>(`${cloudServiceURL}/permission/role/${rid}`)
-   }
+      return request<Permission[]>(`${cloudServiceURL}/permission/role/${rid}`, 'GET')
+   };
 }

@@ -2,15 +2,14 @@
 // export function listToTree(
 //    parentEl: { id: number, parent_id: number, children: null },
 //    list: { id: number, parent_id: number, children: null }[]) {
+// }
 
 import router from "@/router";
 import type { Permission } from "@/types/User";
 import type { ItemType } from "ant-design-vue";
 import { computed, h, withDirectives } from "vue";
 import Icon from '@ant-design/icons-vue';
-
-
-// }
+import { createFromIconfontCN } from "@ant-design/icons-vue";
 
 
 export function buildTree(data: any[], baseId: number) {
@@ -78,3 +77,9 @@ export function buildMenuTree(data: Permission[], baseId: number) {
    });
    return tree;
 }
+
+
+// 字体图标
+export const IconFont = createFromIconfontCN({
+   scriptUrl: '//at.alicdn.com/t/c/font_4434606_68pfs7gm12l.js',
+})

@@ -40,6 +40,9 @@ const router = createRouter({
           path: '/vocabulary', name: '词集管理', children: [
             { path: 'list', name: '词集列表', component: () => import('@/views/vocabulary/List.vue') }
           ]
+        },
+        {
+          path: '/website', name: '网站设置', component: () => import('@/views/website/index.vue')
         }
       ]
     },

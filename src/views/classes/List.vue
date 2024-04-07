@@ -157,6 +157,7 @@ function ItemTitleClick(item: Classes) {
 async function handleOk() {
    try {
       await classesFormEl.value?.validateFields()
+      if(!userStore.userInfo) return message.error('用户信息获取失败');
       currentClasses.value.creatorUid = String(userStore.userInfo.id)!;
       let result;
       if (isEdit.value) {
@@ -196,7 +197,7 @@ function closeClassesModel() {
       creatorUid: '',
       annc: '',
       info: '',
-      createdTime: ''
+      createTime: ''
    };
    classesFormEl.value?.clearValidate();
 }
