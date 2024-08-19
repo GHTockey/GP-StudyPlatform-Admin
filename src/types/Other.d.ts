@@ -14,6 +14,7 @@ export type MyBatisPlusPage<T> = {
 
 // 网站信息
 export type Website = {
+   id: number;
    logoUrl: string;
    name: string;
    info: string;

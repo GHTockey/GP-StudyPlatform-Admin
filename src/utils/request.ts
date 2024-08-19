@@ -5,7 +5,8 @@ import router from "@/router";
 import { useUserStore } from "@/stores/user";
 
 // let baseURL: string = "http://localhost:10010";
-let baseURL: string = "/api"; // vite.config.ts 中配置了代理
+// let baseURL: string = "/api"; // vite.config.ts 中配置了代理
+let baseURL: string = import.meta.env.VITE_BASE_URL;
 const service = axios.create({
    baseURL,
 });
@@ -56,7 +57,7 @@ function request<T>(url: string, method: Method, submitData?: object, uploadHand
    return service.request<T, BaseResult<T>>({
       url,
       method,
-      [method.toLowerCase() === 'get' ? 'params' : 'data']: submitData,
+      [method?.toLowerCase() === 'get' ? 'params' : 'data']: submitData,
       onUploadProgress: uploadHandler
    })
 };

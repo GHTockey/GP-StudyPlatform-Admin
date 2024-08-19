@@ -29,12 +29,13 @@ export default defineConfig({
   },
   server: {
     port: 3001,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080', // 后端服务实际地址
-        changeOrigin: true, // 是否跨域
-        rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径 (去掉/api)
-      }
-    }
+    // proxy: {
+    //   '/api': {
+    //     // target: 'http://localhost:8080', // 后端服务实际地址
+    //     target: 'https://gp-api.tockey.cn',
+    //     changeOrigin: true, // 是否跨域
+    //     rewrite: (path) => path.replace(/^\/api/, ''), // 重写路径 (去掉/api)
+    //   }
+    // }
   },
 })
